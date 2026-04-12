@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Твой прогресс — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────────────────────────────────────────
+       DESIGN TOKENS
+    ───────────────────────────────────────────── */
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-tabbar:     rgba(10, 11, 18, 0.92);
+
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-dim:    rgba(91, 108, 249, 0.12);
+      --accent-border: rgba(91, 108, 249, 0.28);
+      --gradient:      linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+
+      --success:       #34D399;
+      --success-dim:   rgba(52, 211, 153, 0.10);
+      --success-border:rgba(52, 211, 153, 0.28);
+
+      --danger:        #F87171;
+      --danger-dim:    rgba(248, 113, 113, 0.10);
+      --danger-border: rgba(248, 113, 113, 0.28);
+
+      --warning:       #FBBF24;
+      --warning-dim:   rgba(251, 191, 36, 0.10);
+      --warning-border:rgba(251, 191, 36, 0.28);
+
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.11);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  18px;
+
+      --tabbar-h:   68px;
+      --safe-bot:   env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET & BASE
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ─────────────────────────────────────────────
+       AMBIENT GLOW
+    ───────────────────────────────────────────── */
+    .bg-glow {
+      position: fixed;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 340px; height: 340px;
+      background: radial-gradient(circle, rgba(91,108,249,0.09) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────────────────
+       SCROLL AREA
+    ───────────────────────────────────────────── */
+    .scroll-area {
+      position: relative;
+      z-index: 1;
+      padding: 52px 20px calc(var(--tabbar-h) + var(--safe-bot) + 24px);
+    }
+
+    /* ─────────────────────────────────────────────
+       ANIMATIONS
+    ───────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fillBar {
+      from { width: 0; }
+      to   { width: var(--w); }
+    }
+
+    /* ─────────────────────────────────────────────
+       HEADER
+    ───────────────────────────────────────────── */
+    .page-header {
+      margin-bottom: 24px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .page-header__greeting {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      margin-bottom: 6px;
+    }
+    .page-header__title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .page-header__sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ─────────────────────────────────────────────
+       BASE CARD
+    ───────────────────────────────────────────── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.4), transparent);
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* ─────────────────────────────────────────────
+       SECTION TITLE
+    ───────────────────────────────────────────── */
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+    .section-title__text {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      color: var(--text);
+    }
+    .section-title__meta {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ─────────────────────────────────────────────
+       1. MAIN KPI CARD
+    ───────────────────────────────────────────── */
+    .kpi-main {
+      animation: fadeUp 0.4s ease 0.06s both;
+      background: var(--bg-surface);
+    }
+    .kpi-main::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at 85% 0%, rgba(91,108,249,0.09) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .kpi-main__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .kpi-main__left { flex: 1; }
+    .kpi-main__score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .kpi-main__delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .kpi-main__delta svg { flex-shrink: 0; }
+
+    /* Progress ring */
+    .ring-wrap {
+      flex-shrink: 0;
+      width: 72px; height: 72px;
+      position: relative;
+    }
+    .ring-wrap svg {
+      width: 72px; height: 72px;
+      transform: rotate(-90deg);
+    }
+    .ring-bg { fill: none; stroke: var(--border-strong); stroke-width: 5; }
+    .ring-fill {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 188.5;
+      stroke-dashoffset: 188.5;
+      transition: stroke-dashoffset 1s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Progress bar */
+    .kpi-main__bar {
+      height: 4px;
+      background: var(--border-strong);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .kpi-main__bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--gradient);
+      --w: 76%;
+      width: 0;
+      animation: fillBar 0.9s ease 0.7s both;
+    }
+
+    /* ─────────────────────────────────────────────
+       2. CHART CARD
+    ───────────────────────────────────────────── */
+    .chart-card {
+      animation: fadeUp 0.4s ease 0.10s both;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 100px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+    .chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+    }
+    .chart-labels span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .chart-week-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+      margin-top: 2px;
+    }
+    .chart-week-labels span {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      opacity: 0.55;
+    }
+
+    /* ─────────────────────────────────────────────
+       3. EXAM READINESS CARD
+    ───────────────────────────────────────────── */
+    .readiness-card {
+      animation: fadeUp 0.4s ease 0.14s both;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .readiness-card__left { flex: 1; }
+    .readiness-card__value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
+      margin-bottom: 5px;
+    }
+    .readiness-card__helper {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+    .readiness-icon {
+      width: 44px; height: 44px;
+      border-radius: 13px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .readiness-icon svg { color: var(--accent); }
+
+    /* ─────────────────────────────────────────────
+       4. SECONDARY KPI ROW
+    ───────────────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+      animation: fadeUp 0.4s ease 0.18s both;
+    }
+    .kpi-cell {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 14px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-cell::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.35), transparent);
+    }
+    .kpi-cell__label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .kpi-cell__value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .kpi-cell__sub {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-accent);
+    }
+
+    /* ─────────────────────────────────────────────
+       5. WEEKLY PLAN
+    ───────────────────────────────────────────── */
+    .plan-card {
+      animation: fadeUp 0.4s ease 0.22s both;
+      padding: 0;
+      overflow: hidden;
+    }
+    .plan-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .plan-card__title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      color: var(--text);
+    }
+    .plan-card__icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .plan-card__icon svg { color: var(--accent); }
+    .plan-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .plan-item:last-child { border-bottom: none; }
+    .plan-item:hover { background: var(--bg-elevated); }
+    .plan-item:active { background: rgba(91,108,249,0.06); }
+    .plan-item__day {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .plan-item.today .plan-item__day {
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .plan-item__name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .plan-item.today .plan-item__name { font-weight: 600; }
+    .plan-item__arrow { color: var(--text-muted); }
+
+    /* ─────────────────────────────────────────────
+       6. ACHIEVEMENTS
+    ───────────────────────────────────────────── */
+    .achievements-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      animation: fadeUp 0.4s ease 0.26s both;
+      margin-bottom: 12px;
+    }
+    .achievements-scroll::-webkit-scrollbar { display: none; }
+    .achievement-card {
+      flex-shrink: 0;
+      width: 148px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .achievement-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.35), transparent);
+    }
+    .achievement-card__icon {
+      width: 36px; height: 36px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .achievement-card__icon.green {
+      background: var(--success-dim);
+      border: 1px solid var(--success-border);
+    }
+    .achievement-card__icon.blue {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+    }
+    .achievement-card__icon.orange {
+      background: rgba(251,191,36,0.10);
+      border: 1px solid rgba(251,191,36,0.28);
+    }
+    .achievement-card__label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .achievement-card__text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    /* ─────────────────────────────────────────────
+       7. RISK ZONES
+    ───────────────────────────────────────────── */
+    .risk-card {
+      animation: fadeUp 0.4s ease 0.30s both;
+      padding: 0;
+      overflow: hidden;
+    }
+    .risk-card__header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .risk-card__title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .risk-card__warning {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--danger-dim);
+      border: 1px solid var(--danger-border);
+      display: flex; align-items: center; justify-content: center;
+      margin-left: 2px;
+    }
+    .risk-card__warning svg { color: var(--danger); }
+    .risk-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .risk-item:last-child { border-bottom: none; }
+    .risk-item__body { flex: 1; }
+    .risk-item__name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .risk-item__sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .risk-badge {
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .risk-badge.high {
+      color: var(--danger);
+      background: var(--danger-dim);
+      border: 1px solid var(--danger-border);
+    }
+    .risk-badge.mid {
+      color: var(--warning);
+      background: var(--warning-dim);
+      border: 1px solid var(--warning-border);
+    }
+
+    /* ─────────────────────────────────────────────
+       8. MOTIVATION CARD
+    ───────────────────────────────────────────── */
+    .motivation-card {
+      animation: fadeUp 0.4s ease 0.34s both;
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .motivation-card:hover { border-color: rgba(91,108,249,0.5); }
+    .motivation-card::before {
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.7), transparent);
+    }
+    .motivation-card__icon {
+      width: 44px; height: 44px;
+      border-radius: 13px;
+      background: rgba(91,108,249,0.18);
+      border: 1px solid rgba(91,108,249,0.35);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+    .motivation-card__body { flex: 1; }
+    .motivation-card__title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin-bottom: 3px;
+    }
+    .motivation-card__sub {
+      font-size: 12px;
+      color: var(--text-soft);
+      font-weight: 400;
+    }
+    .motivation-card__arrow { color: var(--text-muted); flex-shrink: 0; }
+
+    /* ─────────────────────────────────────────────
+       TAB BAR
+    ───────────────────────────────────────────── */
+    .tabbar {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: calc(var(--tabbar-h) + var(--safe-bot));
+      padding-bottom: var(--safe-bot);
+      background: var(--bg-tabbar);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      padding-top: 10px;
+      z-index: 100;
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      position: relative;
+      text-decoration: none;
+    }
+    .tab:hover { opacity: 0.85; }
+    .tab__icon { color: var(--text-muted); transition: color 0.15s; }
+    .tab__label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+    .tab.active .tab__icon { color: var(--accent); }
+    .tab.active .tab__label { color: var(--accent); }
+    .tab.active::before {
+      content: '';
+      position: absolute;
+      top: -10px; left: 50%;
+      transform: translateX(-50%);
+      width: 28px; height: 3px;
+      border-radius: 0 0 3px 3px;
+      background: var(--gradient);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <!-- SVG gradient defs (hidden) -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#5B6CF9"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <linearGradient id="chartGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#5B6CF9"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <linearGradient id="chartAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#5B6CF9" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#5B6CF9" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <main class="scroll-area">
+
+    <!-- ── 1. HEADER ── -->
+    <header class="page-header">
+      <div class="page-header__greeting">Добро пожаловать, Алина</div>
+      <div class="page-header__title">Твой прогресс</div>
+      <div class="page-header__sub">Подготовка к ОГЭ и ЕГЭ под контролем</div>
+    </header>
+
+    <!-- ── 2. MAIN KPI CARD ── -->
+    <div class="card kpi-main">
+      <div class="card-label">Прогноз результата</div>
+      <div class="kpi-main__top">
+        <div class="kpi-main__left">
+          <div class="kpi-main__score">74–78 баллов</div>
+          <div class="kpi-main__delta">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 9l4-6 4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            +6 баллов за неделю
+          </div>
+        </div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 72 72">
+            <circle class="ring-bg" cx="36" cy="36" r="30"/>
+            <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30"/>
+          </svg>
+          <div class="ring-label">76%</div>
+        </div>
+      </div>
+      <div class="kpi-main__bar">
+        <div class="kpi-main__bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- ── 3. CHART CARD ── -->
+    <div class="card chart-card">
+      <div class="section-title" style="margin-bottom:4px;">
+        <span class="section-title__text">Рост результата</span>
+        <span class="section-title__meta">За 4 недели</span>
+      </div>
+      <div class="chart-wrap">
+        <svg viewBox="0 0 320 90" preserveAspectRatio="none" id="chartSvg">
+          <!-- Grid lines -->
+          <line x1="0" y1="72" x2="320" y2="72" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="48" x2="320" y2="48" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="24" x2="320" y2="24" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <!-- Area fill -->
+          <path d="M0 72 L106 52 L213 38 L320 14 L320 88 L0 88 Z" fill="url(#chartAreaGrad)"/>
+          <!-- Line -->
+          <path id="chartLine" d="M0 72 L106 52 L213 38 L320 14" fill="none" stroke="url(#chartGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Dots -->
+          <circle cx="0"   cy="72" r="4" fill="#5B6CF9" stroke="#09090F" stroke-width="2"/>
+          <circle cx="106" cy="52" r="4" fill="#6D74F8" stroke="#09090F" stroke-width="2"/>
+          <circle cx="213" cy="38" r="4" fill="#7C68F7" stroke="#09090F" stroke-width="2"/>
+          <circle cx="320" cy="14" r="5" fill="#8B5CF6" stroke="#09090F" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <div class="chart-labels">
+        <span>68</span>
+        <span>72</span>
+        <span>74</span>
+        <span>78</span>
+      </div>
+      <div class="chart-week-labels">
+        <span>Нед 1</span>
+        <span>Нед 2</span>
+        <span>Нед 3</span>
+        <span>Нед 4</span>
+      </div>
+    </div>
+
+    <!-- ── 4. EXAM READINESS CARD ── -->
+    <div class="card readiness-card">
+      <div class="readiness-card__left">
+        <div class="card-label" style="margin-bottom:6px;">Готовность к экзамену</div>
+        <div class="readiness-card__value">76%</div>
+        <div class="readiness-card__helper">прогноз по текущему темпу подготовки</div>
+      </div>
+      <div class="readiness-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M2 10.5l3.5 3.5 4-4M10 6l3.5 3.5 4-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ── 5. SECONDARY KPI ROW ── -->
+    <div class="kpi-row">
+      <div class="kpi-cell">
+        <div class="kpi-cell__label">До экзамена</div>
+        <div class="kpi-cell__value">54</div>
+        <div class="kpi-cell__sub">Осталось дней</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-cell__label">Закрыто тем</div>
+        <div class="kpi-cell__value">5/12</div>
+        <div class="kpi-cell__sub">42% курса</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-cell__label">Серия</div>
+        <div class="kpi-cell__value">4</div>
+        <div class="kpi-cell__sub">дня подряд</div>
+      </div>
+    </div>
+
+    <!-- ── 6. WEEKLY PLAN ── -->
+    <div class="card plan-card" style="animation: fadeUp 0.4s ease 0.22s both;">
+      <div class="plan-card__header">
+        <span class="plan-card__title">План на неделю</span>
+        <div class="plan-card__icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M5 1v2M9 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M1 6h12" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </div>
+      </div>
+      <div class="plan-item today" onclick="window.location.href='theory.html'">
+        <div class="plan-item__day">Пн</div>
+        <div class="plan-item__name">История XIX века</div>
+        <div class="plan-item__arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="plan-item" onclick="showComingSoon()">
+        <div class="plan-item__day">Вт</div>
+        <div class="plan-item__name">Конституционное право</div>
+        <div class="plan-item__arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="plan-item" onclick="showComingSoon()">
+        <div class="plan-item__day">Ср</div>
+        <div class="plan-item__name">Мини-тест</div>
+        <div class="plan-item__arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="plan-item" onclick="showComingSoon()">
+        <div class="plan-item__day">Чт</div>
+        <div class="plan-item__name">Пробный экзамен</div>
+        <div class="plan-item__arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 7. ACHIEVEMENTS ── -->
+    <div class="section-title" style="animation: fadeUp 0.4s ease 0.26s both;">
+      <span class="section-title__text">Последние достижения</span>
+    </div>
+    <div class="achievements-scroll">
+      <div class="achievement-card">
+        <div class="achievement-card__icon green">✓</div>
+        <div class="achievement-card__label">Достижение</div>
+        <div class="achievement-card__text">История XIX века завершена</div>
+      </div>
+      <div class="achievement-card">
+        <div class="achievement-card__icon blue">↑</div>
+        <div class="achievement-card__label">Достижение</div>
+        <div class="achievement-card__text">+12 баллов к тесту</div>
+      </div>
+      <div class="achievement-card">
+        <div class="achievement-card__icon orange">🔥</div>
+        <div class="achievement-card__label">Достижение</div>
+        <div class="achievement-card__text">4 дня подряд занятий</div>
+      </div>
+    </div>
+
+    <!-- ── 8. RISK ZONES ── -->
+    <div class="card risk-card" style="animation: fadeUp 0.4s ease 0.30s both;">
+      <div class="risk-card__header">
+        <span class="risk-card__title">Требует внимания</span>
+        <div class="risk-card__warning">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M5 3.5v2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <circle cx="5" cy="7.5" r="0.6" fill="currentColor"/>
+          </svg>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-item__body">
+          <div class="risk-item__name">Конституционное право</div>
+          <div class="risk-item__sub">Низкий процент верных ответов</div>
+        </div>
+        <div class="risk-badge high">Высокий риск</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-item__body">
+          <div class="risk-item__name">Часть 2: развёрнутые ответы</div>
+          <div class="risk-item__sub">Требуется практика оформления</div>
+        </div>
+        <div class="risk-badge mid">Средний</div>
+      </div>
+    </div>
+
+    <!-- ── 9. MOTIVATION CARD ── -->
+    <div class="card motivation-card" onclick="showComingSoon()">
+      <div class="motivation-card__icon">🏆</div>
+      <div class="motivation-card__body">
+        <div class="motivation-card__title">До цели 80+</div>
+        <div class="motivation-card__sub">Осталось всего 6 баллов</div>
+      </div>
+      <div class="motivation-card__arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── TAB BAR ── -->
+  <nav class="tabbar">
+    <a href="../screen-01-dashboard.html" class="tab">
+      <div class="tab__icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="12" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="3" y="12" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="12" y="12" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="tab__label">Главная</span>
+    </a>
+    <a href="exam-feedback.html" class="tab">
+      <div class="tab__icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <rect x="4" y="3" width="14" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 8h6M8 11.5h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Тесты</span>
+    </a>
+    <a href="theory.html" class="tab">
+      <div class="tab__icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 19V6a2 2 0 012-2h12v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M4 19a2 2 0 002 2h12a2 2 0 002-2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 9h6M9 12h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Уроки</span>
+    </a>
+    <a href="#" class="tab active">
+      <div class="tab__icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 19c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Профиль</span>
+    </a>
+  </nav>
+
+  <!-- ── TOAST ── -->
+  <div id="toast" style="position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);max-width:320px;width:calc(100% - 40px);background:#161922;border:1px solid rgba(255,255,255,0.11);border-radius:14px;padding:14px 18px;font-size:13px;font-weight:500;color:#94A3B8;text-align:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;backdrop-filter:blur(12px);"></div>
+
+  <script>
+    /* ── Progress ring ── */
+    (function () {
+      const circumference = 2 * Math.PI * 30; // 188.5
+      const fill = document.getElementById('ringFill');
+      fill.style.strokeDasharray = circumference;
+      fill.style.strokeDashoffset = circumference;
+      setTimeout(() => {
+        fill.style.strokeDashoffset = circumference * (1 - 0.76); // 76%
+      }, 300);
+    })();
+
+    /* ── Toast ── */
+    let _t;
+    function showComingSoon(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg || 'Скоро — в следующей версии!';
+      t.style.opacity = '1';
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      t.style.pointerEvents = 'auto';
+      clearTimeout(_t);
+      _t = setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(-50%) translateY(20px)';
+        t.style.pointerEvents = 'none';
+      }, 2400);
+    }
+  </script>
+
+</body>
+</html>
