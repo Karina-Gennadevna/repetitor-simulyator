@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Главная — Репетитор ОГЭ/ЕГЭ</title>
+  <meta name="description" content="Готовься к ОГЭ и ЕГЭ уверенно — симулятор экзамена, работа над ошибками, рост баллов" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ──────────────────────────────────────────────
+       DESIGN TOKENS
+    ────────────────────────────────────────────── */
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-hover:      #1C1F2A;
+      --bg-tabbar:     rgba(10, 11, 18, 0.92);
+
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-glow:   rgba(91, 108, 249, 0.35);
+      --accent-dim:    rgba(91, 108, 249, 0.12);
+      --accent-border: rgba(91, 108, 249, 0.28);
+      --gradient:      linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+      --gradient-glow: 0 0 32px rgba(91,108,249,0.45), 0 4px 24px rgba(0,0,0,0.5);
+
+      --success:       #34D399;
+      --success-dim:   rgba(52, 211, 153, 0.10);
+      --success-border:rgba(52, 211, 153, 0.28);
+
+      --warning:       #F59E0B;
+      --warning-dim:   rgba(245, 158, 11, 0.10);
+
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-soft:   rgba(255,255,255,0.04);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  18px;
+      --radius-xl:  24px;
+
+      --tabbar-h:   68px;
+      --safe-bot:   env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ──────────────────────────────────────────────
+       RESET & BASE
+    ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ──────────────────────────────────────────────
+       AMBIENT GLOW BACKGROUND
+    ────────────────────────────────────────────── */
+    .bg-glow {
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, rgba(91,108,249,0.14) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-2 {
+      position: fixed;
+      top: 200px;
+      right: -80px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(139,92,246,0.09) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ──────────────────────────────────────────────
+       SCROLL AREA
+    ────────────────────────────────────────────── */
+    .scroll-area {
+      position: relative;
+      z-index: 1;
+      padding: 52px 20px calc(var(--tabbar-h) + var(--safe-bot) + 16px);
+    }
+
+    /* ──────────────────────────────────────────────
+       HERO HEADER
+    ────────────────────────────────────────────── */
+    .hero {
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .hero__greeting {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hero__greeting::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.75); }
+    }
+    .hero__title {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .hero__title .accent {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero__sub {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-soft);
+      max-width: 300px;
+    }
+
+    /* ──────────────────────────────────────────────
+       GOAL CARD
+    ────────────────────────────────────────────── */
+    .goal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease 0.08s both;
+    }
+    .goal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.5), transparent);
+    }
+    .goal-card__left { flex: 1; min-width: 0; }
+    .goal-card__label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .goal-card__title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .goal-card__meta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+    .goal-card__meta svg { flex-shrink: 0; opacity: 0.7; }
+
+    /* Circular progress */
+    .progress-ring {
+      flex-shrink: 0;
+      position: relative;
+      width: 68px;
+      height: 68px;
+    }
+    .progress-ring svg { transform: rotate(-90deg); }
+    .progress-ring__track {
+      fill: none;
+      stroke: var(--bg-elevated);
+      stroke-width: 5;
+    }
+    .progress-ring__fill {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 175.93;
+      stroke-dashoffset: 175.93;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .progress-ring__label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ──────────────────────────────────────────────
+       SUBJECT BADGE SWITCHER
+    ────────────────────────────────────────────── */
+    .subject-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      animation: fadeUp 0.5s ease 0.12s both;
+    }
+    .subject-row::-webkit-scrollbar { display: none; }
+    .subject-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      flex-shrink: 0;
+    }
+    .subject-badge.active {
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      color: var(--text-accent);
+    }
+    .subject-badge.inactive {
+      background: var(--bg-surface);
+      border-color: var(--border);
+      color: var(--text-soft);
+    }
+    .subject-badge.inactive:hover {
+      border-color: rgba(255,255,255,0.14);
+      color: var(--text);
+    }
+    .subject-badge__dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ──────────────────────────────────────────────
+       PRIMARY CTA BUTTON
+    ────────────────────────────────────────────── */
+    .btn-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 18px 24px;
+      background: var(--gradient);
+      border-radius: var(--radius-lg);
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+      box-shadow: var(--gradient-glow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: fadeUp 0.5s ease 0.16s both, glow-pulse 3s ease-in-out 1.5s infinite;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .btn-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    }
+    .btn-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 48px rgba(91,108,249,0.55), 0 8px 32px rgba(0,0,0,0.55);
+    }
+    .btn-cta:active { transform: scale(0.98); }
+    .btn-cta__icon {
+      width: 30px; height: 30px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 32px rgba(91,108,249,0.45), 0 4px 24px rgba(0,0,0,0.5); }
+      50%       { box-shadow: 0 0 52px rgba(91,108,249,0.65), 0 4px 24px rgba(0,0,0,0.5); }
+    }
+
+    /* Secondary action */
+    .btn-secondary {
+      display: block;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-soft);
+      padding: 12px;
+      margin-top: 2px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .btn-secondary:hover { color: var(--text-accent); }
+    .btn-secondary span { margin-left: 2px; font-weight: 600; }
+
+    /* ──────────────────────────────────────────────
+       QUICK ACTION CARDS (3 in a row)
+    ────────────────────────────────────────────── */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease 0.24s both;
+    }
+    .quick-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .quick-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-border);
+      background: var(--bg-elevated);
+    }
+    .quick-card:active { transform: scale(0.97); }
+    .quick-card__icon {
+      width: 44px; height: 44px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .quick-card:hover .quick-card__icon {
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+    }
+    .quick-card__label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-soft);
+      text-align: center;
+      line-height: 1.35;
+    }
+    .quick-card:hover .quick-card__label { color: var(--text); }
+
+    /* ──────────────────────────────────────────────
+       SECTION LABEL
+    ────────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      animation: fadeUp 0.5s ease 0.28s both;
+    }
+
+    /* ──────────────────────────────────────────────
+       LAST RESULT CARD
+    ────────────────────────────────────────────── */
+    .result-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      animation: fadeUp 0.5s ease 0.32s both;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+    .result-card:hover { border-color: rgba(255,255,255,0.12); }
+    .result-card__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .result-card__heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+    .result-card__date {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .result-card__bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .result-card__score-col { display: flex; flex-direction: column; gap: 10px; }
+    .result-card__score {
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+    }
+    .result-card__num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .result-card__denom {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .result-card__delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: var(--success-dim);
+      border: 1px solid var(--success-border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .btn-detail {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 16px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-accent);
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      text-decoration: none;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+    .btn-detail:hover { background: rgba(91,108,249,0.2); transform: translateY(-1px); }
+    .btn-detail:active { transform: scale(0.97); }
+
+    /* ──────────────────────────────────────────────
+       STREAK / TIP CARD
+    ────────────────────────────────────────────── */
+    .tip-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      animation: fadeUp 0.5s ease 0.36s both;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      text-decoration: none;
+    }
+    .tip-card:hover { border-color: rgba(245,158,11,0.3); background: var(--bg-elevated); }
+    .tip-card__icon {
+      width: 42px; height: 42px;
+      background: var(--warning-dim);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .tip-card__content { flex: 1; min-width: 0; }
+    .tip-card__title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .tip-card__sub {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.45;
+    }
+    .tip-card__arrow { color: var(--text-muted); flex-shrink: 0; }
+
+    /* ──────────────────────────────────────────────
+       BOTTOM TAB BAR
+    ────────────────────────────────────────────── */
+    .tabbar {
+      position: fixed;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: calc(var(--tabbar-h) + var(--safe-bot));
+      padding-bottom: var(--safe-bot);
+      background: var(--bg-tabbar);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      padding-top: 10px;
+      z-index: 100;
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 2px 0;
+      position: relative;
+      transition: opacity 0.2s ease;
+    }
+    .tab:active { opacity: 0.7; }
+    .tab.active::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      width: 24px;
+      height: 2px;
+      background: var(--gradient);
+      border-radius: 0 0 3px 3px;
+    }
+    .tab__icon {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s ease;
+    }
+    .tab.active .tab__icon { background: var(--accent-dim); }
+    .tab__label { font-size: 10px; font-weight: 600; letter-spacing: 0.01em; }
+    .tab .tab__icon svg,
+    .tab .tab__label { color: var(--text-muted); }
+    .tab.active .tab__icon svg,
+    .tab.active .tab__label { color: var(--accent); }
+
+    /* ──────────────────────────────────────────────
+       ANIMATIONS
+    ────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient glows -->
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- SVG gradient defs -->
+  <svg width="0" height="0" style="position:absolute;pointer-events:none">
+    <defs>
+      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#5B6CF9"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- ────────────────── SCROLL AREA ────────────────── -->
+  <div class="scroll-area">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero__greeting">Добро пожаловать, Алина</div>
+      <h1 class="hero__title">
+        Готовься к ОГЭ и ЕГЭ<br>
+        <span class="accent">уверенно</span>
+      </h1>
+      <p class="hero__sub">Пройди пробный экзамен, найди слабые темы и выйди на высокий балл</p>
+    </div>
+
+    <!-- SUBJECT SWITCHER -->
+    <div class="subject-row">
+      <button class="subject-badge active" data-subject="math">
+        <span class="subject-badge__dot" style="background:#5B6CF9"></span>
+        Математика
+      </button>
+      <button class="subject-badge inactive" data-subject="russian">
+        <span class="subject-badge__dot" style="background:#F59E0B"></span>
+        Русский язык
+      </button>
+      <button class="subject-badge inactive" data-subject="social">
+        <span class="subject-badge__dot" style="background:#34D399"></span>
+        Обществознание
+      </button>
+      <button class="subject-badge inactive" data-subject="history">
+        <span class="subject-badge__dot" style="background:#F87171"></span>
+        История
+      </button>
+    </div>
+
+    <!-- GOAL CARD -->
+    <div class="goal-card">
+      <div class="goal-card__left">
+        <div class="goal-card__label">Твоя цель</div>
+        <div class="goal-card__title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.5" stroke="#5B6CF9" stroke-width="1.5"/>
+            <circle cx="8" cy="8" r="3.5" stroke="#5B6CF9" stroke-width="1.5"/>
+            <circle cx="8" cy="8" r="1.2" fill="#5B6CF9"/>
+          </svg>
+          Цель: 80+ баллов
+        </div>
+        <div class="goal-card__meta">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M6.5 3.5V6.5L8.5 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          До экзамена: 54 дня
+        </div>
+      </div>
+
+      <!-- Circular progress ring -->
+      <div class="progress-ring">
+        <svg width="68" height="68" viewBox="0 0 68 68">
+          <circle class="progress-ring__track" cx="34" cy="34" r="28"/>
+          <circle class="progress-ring__fill" id="ringFill" cx="34" cy="34" r="28"/>
+        </svg>
+        <div class="progress-ring__label" id="ringLabel">0%</div>
+      </div>
+    </div>
+
+    <!-- PRIMARY CTA -->
+    <a href="#" onclick="showComingSoon(event)" class="btn-cta">
+      <div class="btn-cta__icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3.5 2L12 7L3.5 12V2Z" fill="white"/>
+        </svg>
+      </div>
+      Начать пробный экзамен
+    </a>
+
+    <!-- SECONDARY ACTION -->
+    <div class="btn-secondary" onclick="window.location.href='app/exam-feedback.html'">
+      Продолжить подготовку<span>→</span>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-grid">
+      <a href="#" onclick="showComingSoon(event)" class="quick-card">
+        <div class="quick-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" color="#818CF8">
+            <rect x="3" y="2" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 7h6M7 10h4M7 13h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="quick-card__label">Симулятор экзамена</span>
+      </a>
+      <a href="app/exam-feedback.html" class="quick-card">
+        <div class="quick-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" color="#818CF8">
+            <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="quick-card__label">Работа над ошибками</span>
+      </a>
+      <a href="#" onclick="showComingSoon(event)" class="quick-card">
+        <div class="quick-card__icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" color="#818CF8">
+            <path d="M3 14l4-4 3 3 4-5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 17h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+          </svg>
+        </div>
+        <span class="quick-card__label">Рост результата</span>
+      </a>
+    </div>
+
+    <!-- SECTION LABEL -->
+    <div class="section-label">Последние результаты</div>
+
+    <!-- LAST RESULT CARD -->
+    <div class="result-card">
+      <div class="result-card__top">
+        <div class="result-card__heading">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M1.5 11l4-4 2.5 2.5 4-5 2 2" stroke="#818CF8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Последний результат
+        </div>
+        <div class="result-card__date">2 дня назад</div>
+      </div>
+      <div class="result-card__bottom">
+        <div class="result-card__score-col">
+          <div class="result-card__score">
+            <span class="result-card__num">68</span>
+            <span class="result-card__denom">/100</span>
+          </div>
+          <div class="result-card__delta">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 9l4-6 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            +12 баллов к прошлой попытке
+          </div>
+        </div>
+        <a href="#" onclick="showComingSoon(event)" class="btn-detail">
+          Подробнее
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M4.5 6.5h5M7.5 4.5l2 2-2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- STREAK / TIP CARD -->
+    <a href="app/exam-feedback.html" class="tip-card">
+      <div class="tip-card__icon">🔥</div>
+      <div class="tip-card__content">
+        <div class="tip-card__title">Серия 3 дня подряд</div>
+        <div class="tip-card__sub">До экзамена 54 дня. Сегодня: теория по алгебре</div>
+      </div>
+      <div class="tip-card__arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </a>
+
+  </div><!-- /scroll-area -->
+
+  <!-- ────────────────── BOTTOM TAB BAR ────────────────── -->
+  <nav class="tabbar">
+
+    <div class="tab active" id="tab-home">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 9.5L10 3l7 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 8.5V16a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Главная</span>
+    </div>
+
+    <div class="tab" id="tab-tests" onclick="window.location.href='app/exam-feedback.html'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3.5" y="2.5" width="13" height="15" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 7h6M7 10h4M7 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Тесты</span>
+    </div>
+
+    <div class="tab" id="tab-lessons" onclick="window.location.href='app/theory.html'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 7h6M7 10h5M7 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Уроки</span>
+    </div>
+
+    <div class="tab" id="tab-profile" onclick="window.location.href='#'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Профиль</span>
+    </div>
+
+  </nav>
+
+  <script>
+    // ── Circular progress animation ──
+    (function () {
+      const circumference = 2 * Math.PI * 28; // 175.93
+      const targetPct = 68;
+      const fill  = document.getElementById('ringFill');
+      const label = document.getElementById('ringLabel');
+
+      fill.style.strokeDasharray  = circumference;
+      fill.style.strokeDashoffset = circumference;
+
+      function easeOutBack(t) {
+        const c1 = 1.70158, c3 = c1 + 1;
+        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+      }
+
+      let start = null;
+      const duration = 1300;
+
+      function tick(ts) {
+        if (!start) start = ts;
+        const t = Math.min((ts - start) / duration, 1);
+        const eased = easeOutBack(t);
+        const pct = Math.round(Math.min(eased, 1) * targetPct);
+        const offset = circumference - (Math.min(eased, 1) * targetPct / 100) * circumference;
+        fill.style.strokeDashoffset = Math.max(0, offset);
+        label.textContent = pct + '%';
+        if (t < 1) requestAnimationFrame(tick);
+      }
+
+      setTimeout(() => requestAnimationFrame(tick), 350);
+    })();
+
+    // ── Subject badge switcher ──
+    document.querySelectorAll('.subject-badge').forEach(badge => {
+      badge.addEventListener('click', function () {
+        document.querySelectorAll('.subject-badge').forEach(b => {
+          b.classList.remove('active');
+          b.classList.add('inactive');
+        });
+        this.classList.remove('inactive');
+        this.classList.add('active');
+      });
+    });
+
+    // ── Tab bar active state ──
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ── Coming soon toast ──
+    let _toastTimer;
+    function showComingSoon(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      let t = document.getElementById('__toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = '__toast';
+        t.style.cssText = 'position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);max-width:320px;width:calc(100% - 40px);background:#161922;border:1px solid rgba(255,255,255,0.11);border-radius:14px;padding:14px 18px;font-size:13px;font-weight:500;color:#94A3B8;text-align:center;z-index:999;opacity:0;transition:opacity .2s,transform .2s;backdrop-filter:blur(12px);font-family:Inter,sans-serif;';
+        document.body.appendChild(t);
+      }
+      t.textContent = 'Экзамен — скоро в следующей версии!';
+      t.style.opacity = '1';
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2400);
+    }
+  </script>
+
+</body>
+</html>

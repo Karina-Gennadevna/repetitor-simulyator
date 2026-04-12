@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Работа над ошибками — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ──────────────────────────────────────────────
+       DESIGN TOKENS
+    ────────────────────────────────────────────── */
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-tabbar:     rgba(10, 11, 18, 0.92);
+
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-dim:    rgba(91, 108, 249, 0.12);
+      --accent-border: rgba(91, 108, 249, 0.28);
+      --gradient:      linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+
+      --success:       #34D399;
+      --success-dim:   rgba(52, 211, 153, 0.10);
+      --success-border:rgba(52, 211, 153, 0.28);
+
+      --danger:        #F87171;
+      --danger-dim:    rgba(248, 113, 113, 0.10);
+      --danger-border: rgba(248, 113, 113, 0.28);
+
+      --warning:       #FBBF24;
+      --warning-dim:   rgba(251, 191, 36, 0.10);
+      --warning-border:rgba(251, 191, 36, 0.28);
+
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.11);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  18px;
+
+      --tabbar-h:   68px;
+      --safe-bot:   env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ──────────────────────────────────────────────
+       RESET & BASE
+    ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ──────────────────────────────────────────────
+       AMBIENT GLOW
+    ────────────────────────────────────────────── */
+    .bg-glow {
+      position: fixed;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(91,108,249,0.12) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ──────────────────────────────────────────────
+       SCROLL AREA
+    ────────────────────────────────────────────── */
+    .scroll-area {
+      position: relative;
+      z-index: 1;
+      padding: 52px 20px calc(var(--tabbar-h) + var(--safe-bot) + 20px);
+    }
+
+    /* ──────────────────────────────────────────────
+       PAGE HEADER
+    ────────────────────────────────────────────── */
+    .page-header {
+      margin-bottom: 24px;
+      animation: fadeUp 0.45s ease both;
+    }
+    .page-header__back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .page-header__back:hover { color: var(--text-soft); }
+    .page-header__title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .page-header__sub {
+      font-size: 14px;
+      color: var(--text-soft);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    /* ──────────────────────────────────────────────
+       RESULT KPI CARD
+    ────────────────────────────────────────────── */
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.45s ease 0.06s both;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.55), transparent);
+    }
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at 80% 0%, rgba(91,108,249,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .kpi-card__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .kpi-card__label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .kpi-card__score {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .kpi-card__num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 46px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .kpi-card__denom {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .kpi-card__delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      background: var(--success-dim);
+      border: 1px solid var(--success-border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--success);
+      white-space: nowrap;
+    }
+    .kpi-card__delta svg { flex-shrink: 0; }
+    .kpi-card__gap-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .kpi-card__gap-text {
+      font-size: 13px;
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+    .kpi-card__gap-text strong {
+      color: var(--text-accent);
+      font-weight: 700;
+    }
+    .kpi-card__gap-bar {
+      flex: 1;
+      max-width: 72px;
+      height: 5px;
+      background: var(--bg-elevated);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .kpi-card__gap-fill {
+      height: 100%;
+      width: 85%;
+      background: var(--gradient);
+      border-radius: 999px;
+    }
+    .kpi-card__forecast {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .kpi-card__forecast-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .kpi-card__forecast-value {
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ──────────────────────────────────────────────
+       RECOMMENDATION BLOCK
+    ────────────────────────────────────────────── */
+    .rec-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.45s ease 0.12s both;
+    }
+    .rec-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: var(--gradient);
+      opacity: 0.6;
+    }
+    .rec-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 0% 0%, rgba(91,108,249,0.09) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .rec-card__label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      margin-bottom: 10px;
+    }
+    .rec-card__label svg { flex-shrink: 0; }
+    .rec-card__topic {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .rec-card__reason {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .rec-card__forecast {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    /* ──────────────────────────────────────────────
+       SECTION HEADER ROW
+    ────────────────────────────────────────────── */
+    .section-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      animation: fadeUp 0.45s ease 0.18s both;
+    }
+    .section-row__title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .section-row__badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    /* ──────────────────────────────────────────────
+       TOPIC CARDS
+    ────────────────────────────────────────────── */
+    .topics-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .topic-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 16px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+      animation: fadeUp 0.45s ease both;
+    }
+    .topic-card:nth-child(1) { animation-delay: 0.22s; }
+    .topic-card:nth-child(2) { animation-delay: 0.27s; }
+    .topic-card:nth-child(3) { animation-delay: 0.32s; }
+    .topic-card:hover {
+      border-color: var(--accent-border);
+      background: var(--bg-elevated);
+      transform: translateX(2px);
+    }
+    .topic-card:active { transform: scale(0.99); }
+
+    .topic-card__icon {
+      width: 42px; height: 42px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+    .topic-card__body { flex: 1; min-width: 0; }
+    .topic-card__top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .topic-card__name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .priority-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .priority-badge.high {
+      background: var(--danger-dim);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .priority-badge.mid {
+      background: var(--warning-dim);
+      border: 1px solid var(--warning-border);
+      color: var(--warning);
+    }
+    .priority-badge.low {
+      background: var(--success-dim);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+    .topic-card__meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .topic-card__errors {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .topic-card__errors svg { flex-shrink: 0; }
+    .topic-card__sep {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      opacity: 0.4;
+    }
+    .topic-card__studied {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .topic-card__progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--bg-elevated);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar__fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .progress-bar__fill.high,
+    .progress-bar__fill.mid,
+    .progress-bar__fill.low   { background: var(--gradient); }
+    .topic-card__potential {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--success);
+      white-space: nowrap;
+    }
+
+    .topic-card__arrow {
+      flex-shrink: 0;
+      color: var(--text-muted);
+      margin-top: 2px;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .topic-card:hover .topic-card__arrow {
+      color: var(--text-accent);
+      transform: translateX(2px);
+    }
+
+    /* ──────────────────────────────────────────────
+       TODAY'S PLAN CARD
+    ────────────────────────────────────────────── */
+    .plan-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.45s ease 0.37s both;
+    }
+    .plan-card__header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .plan-card__icon {
+      width: 28px; height: 28px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .plan-card__title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+    }
+    .plan-card__items {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .plan-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .plan-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .plan-item:first-child { padding-top: 0; }
+    .plan-item__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    /* Checkbox UI для plan items */
+    .plan-item__check {
+      width: 18px; height: 18px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-strong);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .plan-item__check:hover { border-color: var(--accent); }
+    .plan-item__check.checked {
+      background: var(--gradient);
+      border-color: transparent;
+    }
+    .plan-item__check.checked svg { display: block; }
+    .plan-item__check svg { display: none; width: 10px; height: 10px; }
+    .plan-item__name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      transition: color 0.2s ease;
+    }
+    .plan-item.done .plan-item__name {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: var(--text-muted);
+    }
+    .plan-item__value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* ──────────────────────────────────────────────
+       CTA BUTTONS
+    ────────────────────────────────────────────── */
+    .cta-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeUp 0.45s ease 0.42s both;
+    }
+    .cta-helper {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: -2px;
+    }
+    .cta-helper span {
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 18px 24px;
+      background: var(--gradient);
+      border-radius: var(--radius-lg);
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+      box-shadow: 0 0 32px rgba(91,108,249,0.4), 0 4px 20px rgba(0,0,0,0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 55%);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 44px rgba(91,108,249,0.55), 0 8px 28px rgba(0,0,0,0.5);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary svg { position: relative; z-index: 1; flex-shrink: 0; }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 16px 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-soft);
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-border);
+      color: var(--text);
+    }
+    .btn-secondary:active { transform: scale(0.98); }
+
+    /* ──────────────────────────────────────────────
+       BOTTOM TAB BAR
+    ────────────────────────────────────────────── */
+    .tabbar {
+      position: fixed;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: calc(var(--tabbar-h) + var(--safe-bot));
+      padding-bottom: var(--safe-bot);
+      background: var(--bg-tabbar);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      padding-top: 10px;
+      z-index: 100;
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 2px 0;
+      position: relative;
+      transition: opacity 0.2s ease;
+    }
+    .tab:active { opacity: 0.7; }
+    .tab.active::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      width: 24px; height: 2px;
+      background: linear-gradient(135deg, #5B6CF9, #8B5CF6);
+      border-radius: 0 0 3px 3px;
+    }
+    .tab__icon {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s ease;
+    }
+    .tab.active .tab__icon { background: var(--accent-dim); }
+    .tab__label { font-size: 10px; font-weight: 600; letter-spacing: 0.01em; }
+    .tab .tab__icon svg, .tab .tab__label { color: var(--text-muted); }
+    .tab.active .tab__icon svg, .tab.active .tab__label { color: var(--accent); }
+
+    /* ──────────────────────────────────────────────
+       ANIMATIONS
+    ────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <!-- ────────────────── SCROLL AREA ────────────────── -->
+  <div class="scroll-area">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header__back" onclick="history.back()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M8.5 2.5L4 7l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Назад
+      </div>
+      <h1 class="page-header__title">Работа над ошибками</h1>
+      <p class="page-header__sub">Персональный разбор после пробного экзамена</p>
+    </div>
+
+    <!-- KPI RESULT CARD -->
+    <div class="kpi-card">
+      <div class="kpi-card__top">
+        <div>
+          <div class="kpi-card__label">Ваш результат</div>
+          <div class="kpi-card__score">
+            <span class="kpi-card__num">68</span>
+            <span class="kpi-card__denom">/ 100</span>
+          </div>
+        </div>
+        <div class="kpi-card__delta">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 9l4-6 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          +12 к прошлой попытке
+        </div>
+      </div>
+      <div class="kpi-card__gap-row">
+        <div class="kpi-card__gap-text">
+          До цели <strong>80+</strong> осталось <strong>12 баллов</strong>
+        </div>
+        <div class="kpi-card__gap-bar">
+          <div class="kpi-card__gap-fill"></div>
+        </div>
+      </div>
+      <div class="kpi-card__forecast">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <path d="M1.5 10l3-3.5 2.5 2 3-4 2.5 2.5" stroke="#5B6CF9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="kpi-card__forecast-label">Прогноз после урока:</span>
+        <span class="kpi-card__forecast-value">72–74 балла</span>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATION CARD -->
+    <div class="rec-card">
+      <div class="rec-card__label">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5l1.5 3 3.3.5-2.4 2.3.6 3.3L7 9l-3 1.6.6-3.3L2.2 5l3.3-.5L7 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+        </svg>
+        Рекомендуем начать с
+      </div>
+      <div class="rec-card__topic">Отмена крепостного права и реформы 1860-х</div>
+      <div class="rec-card__reason">это поможет быстро поднять результат</div>
+      <div class="rec-card__forecast">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <path d="M1.5 10l3.5-4 2.5 2.5 3.5-4.5 2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        После разбора темы прогноз: +4–6 баллов
+      </div>
+    </div>
+
+    <!-- TOPICS SECTION -->
+    <div class="section-row">
+      <div class="section-row__title">Темы для повторения</div>
+      <div class="section-row__badge">3 темы</div>
+    </div>
+
+    <div class="topics-list">
+
+      <!-- Тема 1 — Высокий приоритет -->
+      <a href="theory.html" class="topic-card">
+        <div class="topic-card__icon">📜</div>
+        <div class="topic-card__body">
+          <div class="topic-card__top">
+            <div class="topic-card__name">История России XIX в.</div>
+            <div class="priority-badge high">Высокий</div>
+          </div>
+          <div class="topic-card__meta">
+            <div class="topic-card__errors">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M6 3.5v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <circle cx="6" cy="8.5" r="0.6" fill="currentColor"/>
+              </svg>
+              3 ошибки
+            </div>
+            <div class="topic-card__sep"></div>
+            <div class="topic-card__studied">Изучено 20%</div>
+          </div>
+          <div class="topic-card__progress-row">
+            <div class="progress-bar">
+              <div class="progress-bar__fill high" style="width:20%"></div>
+            </div>
+            <div class="topic-card__potential">+4 балла</div>
+          </div>
+        </div>
+        <div class="topic-card__arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+
+      <!-- Тема 2 — Средний приоритет -->
+      <a href="theory.html" class="topic-card">
+        <div class="topic-card__icon">⚖️</div>
+        <div class="topic-card__body">
+          <div class="topic-card__top">
+            <div class="topic-card__name">Конституционное право</div>
+            <div class="priority-badge mid">Средний</div>
+          </div>
+          <div class="topic-card__meta">
+            <div class="topic-card__errors">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M6 3.5v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <circle cx="6" cy="8.5" r="0.6" fill="currentColor"/>
+              </svg>
+              2 ошибки
+            </div>
+            <div class="topic-card__sep"></div>
+            <div class="topic-card__studied">Изучено 60%</div>
+          </div>
+          <div class="topic-card__progress-row">
+            <div class="progress-bar">
+              <div class="progress-bar__fill mid" style="width:60%"></div>
+            </div>
+            <div class="topic-card__potential">+2 балла</div>
+          </div>
+        </div>
+        <div class="topic-card__arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+
+      <!-- Тема 3 — Низкий приоритет -->
+      <a href="theory.html" class="topic-card">
+        <div class="topic-card__icon">🌍</div>
+        <div class="topic-card__body">
+          <div class="topic-card__top">
+            <div class="topic-card__name">Первая мировая война</div>
+            <div class="priority-badge low">Низкий</div>
+          </div>
+          <div class="topic-card__meta">
+            <div class="topic-card__errors">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M6 3.5v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <circle cx="6" cy="8.5" r="0.6" fill="currentColor"/>
+              </svg>
+              1 ошибка
+            </div>
+            <div class="topic-card__sep"></div>
+            <div class="topic-card__studied">Изучено 80%</div>
+          </div>
+          <div class="topic-card__progress-row">
+            <div class="progress-bar">
+              <div class="progress-bar__fill low" style="width:80%"></div>
+            </div>
+            <div class="topic-card__potential">+1 балл</div>
+          </div>
+        </div>
+        <div class="topic-card__arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- TODAY'S PLAN -->
+    <div class="plan-card">
+      <div class="plan-card__header">
+        <div class="plan-card__icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="5.5" stroke="#818CF8" stroke-width="1.3"/>
+            <path d="M7 4v3.5l2 1.5" stroke="#818CF8" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="plan-card__title">План на сегодня</div>
+      </div>
+      <div class="plan-card__items">
+        <div class="plan-item" id="plan-item-1">
+          <div class="plan-item__left">
+            <div class="plan-item__check" onclick="togglePlan('plan-item-1', this)">
+              <svg viewBox="0 0 10 10" fill="none">
+                <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="plan-item__name">История XIX века</div>
+          </div>
+          <div class="plan-item__value">15 минут</div>
+        </div>
+        <div class="plan-item" id="plan-item-2">
+          <div class="plan-item__left">
+            <div class="plan-item__check" onclick="togglePlan('plan-item-2', this)">
+              <svg viewBox="0 0 10 10" fill="none">
+                <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="plan-item__name">Мини-тест</div>
+          </div>
+          <div class="plan-item__value">5 вопросов</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA BUTTONS -->
+    <div class="cta-section">
+      <a href="theory.html" class="btn-primary">
+        Начать урок по теме
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M4 8h8M9 5l3 3-3 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="cta-helper">потенциальный рост: <span>+4–6 баллов</span></div>
+      <a href="#" onclick="showComingSoon(event)" class="btn-secondary">
+        Пройти тест по ошибкам
+      </a>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- ────────────────── BOTTOM TAB BAR ────────────────── -->
+  <nav class="tabbar">
+
+    <div class="tab" onclick="window.location.href='../screen-01-dashboard.html'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 9.5L10 3l7 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 8.5V16a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Главная</span>
+    </div>
+
+    <div class="tab active" onclick="showComingSoon()">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3.5" y="2.5" width="13" height="15" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 7h6M7 10h4M7 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Тесты</span>
+    </div>
+
+    <div class="tab" onclick="window.location.href='theory.html'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 7h6M7 10h5M7 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Уроки</span>
+    </div>
+
+    <div class="tab" onclick="window.location.href='#'">
+      <div class="tab__icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab__label">Профиль</span>
+    </div>
+
+  </nav>
+
+  <script>
+    // Animate progress bars on load
+    window.addEventListener('load', () => {
+      const fills = document.querySelectorAll('.progress-bar__fill');
+      fills.forEach(fill => {
+        const target = fill.style.width;
+        fill.style.width = '0%';
+        setTimeout(() => { fill.style.width = target; }, 400);
+      });
+    });
+
+    // Toggle plan item checkbox
+    function togglePlan(itemId, checkEl) {
+      checkEl.classList.toggle('checked');
+      document.getElementById(itemId).classList.toggle('done');
+    }
+
+    // Placeholder for screens not yet built
+    function showComingSoon(e) {
+      e.preventDefault();
+      const toast = document.createElement('div');
+      toast.textContent = '🚧 Этот экран в разработке';
+      Object.assign(toast.style, {
+        position: 'fixed', bottom: '90px', left: '50%',
+        transform: 'translateX(-50%)',
+        background: '#1C1F2A', border: '1px solid rgba(91,108,249,0.3)',
+        color: '#94A3B8', fontSize: '13px', fontWeight: '600',
+        padding: '10px 20px', borderRadius: '999px',
+        fontFamily: 'Inter, sans-serif',
+        zIndex: '999', whiteSpace: 'nowrap',
+        animation: 'fadeUp 0.3s ease both',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+      });
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2200);
+    }
+  </script>
+
+</body>
+</html>
