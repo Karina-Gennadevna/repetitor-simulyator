@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Приготовься — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #09090F;
+      --bg-surface:  #10121A;
+      --accent:      #5B6CF9;
+      --accent-2:    #8B5CF6;
+      --gradient:    linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+      --success:     #34D399;
+      --text:        #F1F5F9;
+      --text-soft:   #94A3B8;
+      --text-muted:  #4A5568;
+      --text-accent: #818CF8;
+      --border:      rgba(255,255,255,0.07);
+      --accent-dim:  rgba(91,108,249,0.12);
+      --accent-border: rgba(91,108,249,0.28);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── AMBIENT ── */
+    .glow-ring {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(91,108,249,0.15) 0%, transparent 60%);
+      pointer-events: none;
+      transition: background 0.5s;
+    }
+    .glow-ring.go {
+      background: radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 60%);
+    }
+
+    /* ── MAIN CARD ── */
+    .card {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 0 32px;
+      width: 100%;
+    }
+
+    /* ── SUBJECT CHIP ── */
+    .subject-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      margin-bottom: 48px;
+      animation: fadeDown 0.5s ease both;
+    }
+    .subject-chip__icon { font-size: 16px; }
+    .subject-chip__text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-soft);
+      letter-spacing: -0.01em;
+    }
+    .subject-chip__dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ── COUNTDOWN NUMBER ── */
+    .countdown-wrap {
+      position: relative;
+      width: 200px; height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    /* SVG ring progress */
+    .ring-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 200px; height: 200px;
+      transform: rotate(-90deg);
+    }
+    .ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.05);
+      stroke-width: 4;
+    }
+    .ring-fill {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 565.49; /* 2π × 90 */
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.95s linear, stroke 0.5s;
+    }
+    .ring-fill.go-color { stroke: var(--success); }
+
+    .countdown-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 96px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s;
+    }
+    .countdown-num.go-text {
+      font-size: 52px;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #34D399, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .countdown-num.pop {
+      animation: pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.6); opacity: 0.3; }
+      60%  { transform: scale(1.12); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── LABEL ── */
+    .countdown-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      text-align: center;
+      min-height: 20px;
+      transition: color 0.4s;
+    }
+    .countdown-label.go { color: var(--success); }
+
+    /* ── TIPS ROW ── */
+    .tips {
+      display: flex;
+      gap: 8px;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .tip {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .tip__icon { font-size: 18px; display: block; margin-bottom: 5px; }
+    .tip__text {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 1.4;
+      display: block;
+    }
+
+    /* ── SKIP ── */
+    .skip-btn {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: 20px;
+      transition: color 0.2s;
+      animation: fadeUp 0.5s ease 0.3s both;
+      z-index: 10;
+    }
+    .skip-btn:hover { color: var(--text-soft); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-ring" id="glowRing"></div>
+
+  <div class="card">
+
+    <div class="subject-chip">
+      <span class="subject-chip__icon" id="chipIcon">📐</span>
+      <span class="subject-chip__dot"></span>
+      <span class="subject-chip__text" id="chipText">ОГЭ · Математика</span>
+    </div>
+
+    <div class="countdown-wrap">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#5B6CF9"/>
+            <stop offset="100%" stop-color="#8B5CF6"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-track" cx="100" cy="100" r="90"/>
+        <circle class="ring-fill"  cx="100" cy="100" r="90" id="ringFill"/>
+      </svg>
+      <div class="countdown-num" id="countNum">3</div>
+    </div>
+
+    <div class="countdown-label" id="countLabel">Приготовься</div>
+
+    <div class="tips">
+      <div class="tip">
+        <span class="tip__icon">⏱️</span>
+        <span class="tip__text">Таймер без остановки</span>
+      </div>
+      <div class="tip">
+        <span class="tip__icon">🔢</span>
+        <span class="tip__text">Свободная навигация</span>
+      </div>
+      <div class="tip">
+        <span class="tip__icon">🤖</span>
+        <span class="tip__text">ИИ проверит часть 2</span>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="skip-btn" onclick="goToExam()">Пропустить →</button>
+
+  <script>
+    // ── ПАРАМЕТРЫ ──
+    const params  = new URLSearchParams(window.location.search);
+    const exam    = params.get('exam')    || 'oge';
+    const subject = params.get('subject') || 'math';
+
+    // ── ИНФО О ПРЕДМЕТЕ ──
+    const info = {
+      oge:  { math: { icon: '📐', label: 'ОГЭ · Математика'   },
+              russian: { icon: '📝', label: 'ОГЭ · Русский язык'  } },
+      ege:  { math: { icon: '📐', label: 'ЕГЭ · Математика'   },
+              russian: { icon: '📝', label: 'ЕГЭ · Русский язык'  } },
+    };
+    const d = info[exam][subject];
+    document.getElementById('chipIcon').textContent = d.icon;
+    document.getElementById('chipText').textContent = d.label;
+
+    // ── КОЛЬЦО ──
+    const CIRCUMFERENCE = 2 * Math.PI * 90; // ≈ 565.49
+    const ringFill = document.getElementById('ringFill');
+    ringFill.style.strokeDasharray  = CIRCUMFERENCE;
+    ringFill.style.strokeDashoffset = 0;
+
+    function setRing(fraction) {
+      ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+    }
+
+    // ── COUNTDOWN ──
+    const steps = [
+      { num: '3', label: 'Приготовься', fraction: 1.0 },
+      { num: '2', label: 'Сосредоточься', fraction: 0.666 },
+      { num: '1', label: 'Последний шанс передумать', fraction: 0.333 },
+      { num: 'Старт!', label: 'Удачи! 🚀', fraction: 0, isGo: true },
+    ];
+
+    let step = 0;
+    const numEl   = document.getElementById('countNum');
+    const labelEl = document.getElementById('countLabel');
+    const glowEl  = document.getElementById('glowRing');
+
+    function showStep(i) {
+      const s = steps[i];
+
+      // Текст
+      numEl.classList.remove('pop', 'go-text');
+      void numEl.offsetWidth; // reflow
+      numEl.textContent = s.num;
+      numEl.classList.add('pop');
+      if (s.isGo) numEl.classList.add('go-text');
+
+      labelEl.textContent = s.label;
+      labelEl.classList.toggle('go', !!s.isGo);
+
+      // Кольцо
+      setRing(s.fraction);
+      if (s.isGo) {
+        ringFill.classList.add('go-color');
+        glowEl.classList.add('go');
+      }
+
+      // Вибрация на мобильных
+      if (navigator.vibrate) navigator.vibrate(s.isGo ? [30,20,30] : 40);
+    }
+
+    function tick() {
+      showStep(step);
+      if (step < steps.length - 1) {
+        step++;
+        setTimeout(tick, 1000);
+      } else {
+        setTimeout(goToExam, 800);
+      }
+    }
+
+    function goToExam() {
+      const p = new URLSearchParams({ exam, subject });
+      window.location.href = `exam.html?${p.toString()}`;
+    }
+
+    // Старт с небольшой задержкой для плавного появления
+    setTimeout(tick, 400);
+  </script>
+
+</body>
+</html>

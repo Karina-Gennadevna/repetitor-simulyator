@@ -607,7 +607,7 @@
 
     <!-- ── PAGE HEADER ── -->
     <header class="page-header">
-      <button class="page-header__back" onclick="window.location.href='exam-feedback.html'" aria-label="Назад">
+      <button class="page-header__back" onclick="history.back()" aria-label="Назад">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -773,7 +773,7 @@
 
   <!-- ── TAB BAR ── -->
   <nav class="tabbar">
-    <a href="../screen-01-dashboard.html" class="tab">
+    <a href="today.html" class="tab">
       <div class="tab__icon">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
           <path d="M3 9.5L11 3l8 6.5V19a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
@@ -782,14 +782,13 @@
       </div>
       <span class="tab__label">Главная</span>
     </a>
-    <a href="exam-feedback.html" class="tab">
+    <a href="results.html" class="tab">
       <div class="tab__icon">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <rect x="4" y="3" width="14" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 8h6M8 11.5h5M8 15h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M4 17V10M8 17V7M12 17V12M16 17V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </div>
-      <span class="tab__label">Тесты</span>
+      <span class="tab__label">Маршрут</span>
     </a>
     <a href="#" class="tab active">
       <div class="tab__icon">

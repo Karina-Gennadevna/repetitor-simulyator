@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вопрос дня — Репетитор</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090F;
+      --bg-surface: #10121A;
+      --bg-card: #13151F;
+      --accent: #5B6CF9;
+      --accent-2: #8B5CF6;
+      --accent-glow: rgba(91,108,249,0.25);
+      --orange: #F97316;
+      --orange-dim: rgba(249,115,22,0.15);
+      --green: #22C55E;
+      --text: #F0F0FF;
+      --text-muted: #6B7280;
+      --text-dim: #9CA3AF;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.10);
+      --radius: 16px;
+      --radius-sm: 12px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .screen {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background glow */
+    .bg-glow {
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(91,108,249,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-2 {
+      position: fixed;
+      bottom: 80px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scrollable content */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 100px;
+      position: relative;
+      z-index: 1;
+      scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* ── Header ── */
+    .header {
+      padding: 52px 16px 0;
+      position: relative;
+      z-index: 1;
+    }
+    .challenge-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .header-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── Streak card ── */
+    .streak-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .streak-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.4), transparent);
+    }
+    .streak-card:hover { border-color: rgba(249,115,22,0.3); }
+
+    .streak-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #F97316, #EA580C);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(249,115,22,0.35);
+    }
+    .streak-info { flex: 1; }
+    .streak-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .streak-bonus {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--orange);
+    }
+    .streak-arrow {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    /* ── Question block ── */
+    .question-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .question-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.5), transparent);
+    }
+
+    /* Timer badge */
+    .timer-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(91,108,249,0.15);
+      border: 1px solid rgba(91,108,249,0.25);
+      border-radius: 20px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .timer-badge.urgent {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.3);
+      color: #EF4444;
+    }
+    .timer-icon { font-size: 12px; }
+
+    .question-text {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--text);
+      margin-top: 8px;
+      margin-bottom: 20px;
+      padding-right: 80px;
+    }
+
+    /* Answer options */
+    .answers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .answer-option {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+    .answer-option::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .answer-option span { position: relative; z-index: 1; }
+    .answer-option:hover {
+      border-color: rgba(91,108,249,0.4);
+      color: var(--text);
+    }
+    .answer-option.selected {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .answer-option.selected::before { opacity: 1; }
+
+    /* Motivation text */
+    .motivation-text {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .motivation-text strong {
+      font-weight: 700;
+      font-style: italic;
+      color: var(--orange);
+    }
+
+    /* Rating card */
+    .rating-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .rating-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .rating-col {
+      flex: 1;
+      text-align: center;
+    }
+    .rating-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .rating-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .rating-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--border-strong);
+    }
+
+    /* CTA button */
+    .cta-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      border: none;
+      border-radius: var(--radius);
+      padding: 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 24px rgba(91,108,249,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cta-btn:hover::before { opacity: 1; }
+    .cta-btn:active { transform: scale(0.98); }
+    .cta-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    /* ── Bottom Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: rgba(9,9,15,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      padding: 8px 0 20px;
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 0;
+      cursor: pointer;
+      text-decoration: none;
+      position: relative;
+    }
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .nav-item.active .nav-label { color: var(--accent); }
+    .nav-item.active .nav-icon svg { stroke: var(--accent); }
+    .nav-item svg { stroke: var(--text-muted); transition: stroke 0.2s; }
+
+    /* Active bar */
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 2px;
+      border-radius: 0 0 2px 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    /* Badge on nav icon */
+    .nav-badge {
+      position: absolute;
+      top: -3px; right: -6px;
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+    }
+
+    /* Entrance animation */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim { opacity: 0; animation: fadeUp 0.45s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .d1 { animation-delay: 0.05s; }
+    .d2 { animation-delay: 0.12s; }
+    .d3 { animation-delay: 0.20s; }
+    .d4 { animation-delay: 0.28s; }
+    .d5 { animation-delay: 0.36s; }
+    .d6 { animation-delay: 0.44s; }
+
+    /* Timer pulse when urgent */
+    @keyframes timerPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .timer-badge.urgent { animation: timerPulse 0.8s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+<div class="screen">
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- Header -->
+  <div class="header anim d1">
+    <div class="challenge-label">Сегодняшний челлендж</div>
+    <div class="header-title">Вопрос дня</div>
+    <div class="header-sub">Ответь за 30 секунд и укрепи серию</div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- Streak card -->
+    <div class="streak-card anim d2">
+      <div class="streak-icon">🔥</div>
+      <div class="streak-info">
+        <div class="streak-title">Серия: 4 дня</div>
+        <div class="streak-bonus">+10 очков к рейтингу</div>
+      </div>
+      <div class="streak-arrow">›</div>
+    </div>
+
+    <!-- Question block -->
+    <div class="question-card anim d3">
+      <div class="timer-badge" id="timerBadge">
+        <span class="timer-icon">⏱</span>
+        <span id="timerDisplay">00:30</span>
+      </div>
+
+      <div class="question-text">
+        "Кто подписал манифест об отмене крепостного права?"
+      </div>
+
+      <div class="answers-list" id="answersList">
+        <button class="answer-option" onclick="selectAnswer(this, 0)"><span>Александр I</span></button>
+        <button class="answer-option" onclick="selectAnswer(this, 1)"><span>Александр II</span></button>
+        <button class="answer-option" onclick="selectAnswer(this, 2)"><span>Николай I</span></button>
+        <button class="answer-option" onclick="selectAnswer(this, 3)"><span>Пётр I</span></button>
+      </div>
+    </div>
+
+    <!-- Motivation -->
+    <div class="motivation-text anim d4">
+      После ответа серия станет <strong>5 дней</strong>
+    </div>
+
+    <!-- Rating card -->
+    <div class="rating-card anim d5">
+      <div class="rating-col">
+        <div class="rating-label">Рейтинг</div>
+        <div class="rating-value">240 очков</div>
+      </div>
+      <div class="rating-divider"></div>
+      <div class="rating-col">
+        <div class="rating-label">Место</div>
+        <div class="rating-value">#18</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button class="cta-btn anim d6" id="ctaBtn" onclick="submitAnswer()" disabled>
+      Ответить
+    </button>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a class="nav-item" href="today.html">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <span class="nav-label">Главная</span>
+    </a>
+    <a class="nav-item" href="theory.html">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+        </svg>
+      </div>
+      <span class="nav-label">Уроки</span>
+    </a>
+    <a class="nav-item active" href="question.html">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 010-5H6"/>
+          <path d="M18 9h1.5a2.5 2.5 0 000-5H18"/>
+          <path d="M4 22h16"/>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+          <path d="M18 2H6v7a6 6 0 0012 0V2z"/>
+        </svg>
+        <div class="nav-badge"></div>
+      </div>
+      <span class="nav-label">Рейтинг</span>
+    </a>
+    <a class="nav-item" href="profile.html">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <span class="nav-label">Профиль</span>
+    </a>
+  </nav>
+</div>
+
+<script>
+  // ── Timer ──
+  let timeLeft = 30;
+  let timerInterval = null;
+  let answered = false;
+
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerBadge = document.getElementById('timerBadge');
+  const ctaBtn = document.getElementById('ctaBtn');
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      if (answered) { clearInterval(timerInterval); return; }
+      timeLeft--;
+      const secs = Math.max(0, timeLeft);
+      const mins = Math.floor(secs / 60).toString().padStart(2, '0');
+      const s    = (secs % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${mins}:${s}`;
+      if (secs <= 10) timerBadge.classList.add('urgent');
+      if (secs <= 0) {
+        clearInterval(timerInterval);
+        timerDisplay.textContent = '00:00';
+        timeExpired();
+      }
+    }, 1000);
+  }
+
+  function timeExpired() {
+    if (!answered) {
+      ctaBtn.textContent = 'Время вышло';
+      ctaBtn.style.background = 'rgba(239,68,68,0.3)';
+      ctaBtn.style.boxShadow = 'none';
+      ctaBtn.disabled = false;
+    }
+  }
+
+  // ── Answer selection ──
+  let selectedIdx = null;
+
+  function selectAnswer(btn, idx) {
+    if (answered) return;
+    document.querySelectorAll('.answer-option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedIdx = idx;
+    ctaBtn.disabled = false;
+  }
+
+  // ── Submit ──
+  function submitAnswer() {
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+
+    const correctIdx = 1; // Александр II
+    const options = document.querySelectorAll('.answer-option');
+
+    options.forEach((btn, i) => {
+      btn.style.pointerEvents = 'none';
+      if (i === correctIdx) {
+        btn.style.background = 'rgba(34,197,94,0.18)';
+        btn.style.borderColor = 'rgba(34,197,94,0.5)';
+        btn.style.color = '#22C55E';
+      } else if (i === selectedIdx && i !== correctIdx) {
+        btn.style.background = 'rgba(239,68,68,0.15)';
+        btn.style.borderColor = 'rgba(239,68,68,0.4)';
+        btn.style.color = '#EF4444';
+        btn.querySelector('span').textContent += ' ✗';
+      }
+    });
+
+    const isCorrect = selectedIdx === correctIdx;
+
+    ctaBtn.textContent = isCorrect ? '✓ Верно! +10 очков' : 'Неверно. Правильный — Александр II';
+    ctaBtn.style.background = isCorrect
+      ? 'linear-gradient(135deg, #16A34A, #22C55E)'
+      : 'linear-gradient(135deg, #B91C1C, #EF4444)';
+    ctaBtn.style.boxShadow = isCorrect
+      ? '0 4px 24px rgba(34,197,94,0.3)'
+      : '0 4px 24px rgba(239,68,68,0.3)';
+
+    // Continue after delay
+    setTimeout(() => {
+      ctaBtn.textContent = 'Продолжить →';
+      ctaBtn.style.background = 'linear-gradient(135deg, #5B6CF9, #8B5CF6)';
+      ctaBtn.style.boxShadow = '0 4px 24px rgba(91,108,249,0.35)';
+      ctaBtn.onclick = () => showComingSoon();
+    }, 2000);
+  }
+
+  // ── Toast ──
+  function showComingSoon() {
+    const t = document.createElement('div');
+    t.textContent = 'Скоро здесь появится больше вопросов 🚀';
+    Object.assign(t.style, {
+      position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)',
+      background:'rgba(91,108,249,0.95)', color:'#fff', padding:'12px 20px',
+      borderRadius:'12px', fontSize:'13px', fontWeight:'600',
+      boxShadow:'0 8px 24px rgba(91,108,249,0.4)', zIndex:'999',
+      whiteSpace:'nowrap', transition:'opacity 0.3s'
+    });
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 2500);
+  }
+
+  // Start timer on load
+  window.addEventListener('DOMContentLoaded', () => { startTimer(); });
+</script>
+</body>
+</html>

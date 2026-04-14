@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Начать экзамен — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-hover:      #1C1F2A;
+
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-glow:   rgba(91, 108, 249, 0.35);
+      --accent-dim:    rgba(91, 108, 249, 0.12);
+      --accent-border: rgba(91, 108, 249, 0.28);
+      --gradient:      linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+
+      --success:       #34D399;
+      --success-dim:   rgba(52, 211, 153, 0.10);
+      --success-border:rgba(52, 211, 153, 0.28);
+
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-soft:   rgba(255,255,255,0.04);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  18px;
+      --radius-xl:  24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ── GLOW BG ── */
+    .bg-glow {
+      position: fixed;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(91,108,249,0.13) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+    .bg-glow-2 {
+      position: fixed;
+      bottom: 60px; right: -60px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(139,92,246,0.09) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px 32px;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 0;
+      margin-bottom: 8px;
+    }
+    .topbar__back {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-soft);
+      transition: all 0.18s;
+    }
+    .topbar__back:hover { background: var(--bg-elevated); color: var(--text); }
+    .topbar__badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin: 24px 0 32px;
+      animation: fadeUp 0.45s ease both;
+    }
+    .hero__eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .hero__eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.7); }
+    }
+    .hero__title {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+    .hero__title .grad {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero__sub {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-soft);
+      max-width: 320px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── OGE / EGE TOGGLE ── */
+    .exam-toggle {
+      display: flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 5px;
+      margin-bottom: 28px;
+      position: relative;
+      animation: fadeUp 0.45s ease 0.08s both;
+    }
+    .exam-toggle__slider {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: calc(50% - 5px);
+      height: calc(100% - 10px);
+      background: var(--gradient);
+      border-radius: calc(var(--radius-lg) - 4px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 16px rgba(91,108,249,0.35);
+    }
+    .exam-toggle__slider.ege { transform: translateX(100%); }
+
+    .exam-toggle__btn {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      padding: 14px 0;
+      text-align: center;
+      border-radius: calc(var(--radius-lg) - 4px);
+      transition: color 0.2s;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .exam-toggle__btn .label {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: block;
+      transition: color 0.2s;
+    }
+    .exam-toggle__btn .sublabel {
+      font-size: 11px;
+      font-weight: 500;
+      display: block;
+      margin-top: 2px;
+      transition: color 0.2s;
+    }
+    .exam-toggle__btn.active .label   { color: #fff; }
+    .exam-toggle__btn.active .sublabel{ color: rgba(255,255,255,0.75); }
+    .exam-toggle__btn:not(.active) .label   { color: var(--text-soft); }
+    .exam-toggle__btn:not(.active) .sublabel{ color: var(--text-muted); }
+
+    /* ── SUBJECT GRID ── */
+    .subject-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.45s ease 0.16s both;
+    }
+    .subject-card {
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .subject-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .subject-card:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+    .subject-card.selected {
+      border-color: var(--accent);
+      background: var(--bg-elevated);
+    }
+    .subject-card.selected::before { opacity: 0.06; }
+    .subject-card__icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+    .subject-card__name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      display: block;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 4px;
+    }
+    .subject-card__meta {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+    .subject-card.selected .subject-card__meta { color: var(--text-accent); }
+    .subject-card__check {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 2;
+    }
+    .subject-card.selected .subject-card__check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ── EXAM INFO PILL ── */
+    .exam-info {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      gap: 0;
+      margin-bottom: 28px;
+      animation: fadeUp 0.45s ease 0.22s both;
+    }
+    .info-item {
+      flex: 1;
+      text-align: center;
+    }
+    .info-item + .info-item {
+      border-left: 1px solid var(--border);
+    }
+    .info-item__val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      display: block;
+      margin-bottom: 3px;
+    }
+    .info-item__key {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+
+    /* ── START BUTTON ── */
+    .btn-start {
+      width: 100%;
+      padding: 18px;
+      background: var(--gradient);
+      border-radius: var(--radius-lg);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(91,108,249,0.4);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      animation: fadeUp 0.45s ease 0.28s both;
+      margin-top: auto;
+    }
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(91,108,249,0.55);
+    }
+    .btn-start:active { transform: translateY(0); }
+    .btn-start:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-start__arrow {
+      width: 24px; height: 24px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s;
+    }
+    .btn-start:hover .btn-start__arrow { transform: translateX(3px); }
+
+    /* ── HINT ── */
+    .hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      animation: fadeUp 0.45s ease 0.32s both;
+    }
+    .hint span { color: var(--text-accent); font-weight: 600; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── COMING SOON CHIPS ── */
+    .coming-soon {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .coming-badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 3px 7px;
+      border-radius: 6px;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="page">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <a href="today.html" class="topbar__back">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="topbar__badge">Симулятор</div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero__eyebrow">Настройка экзамена</div>
+      <h1 class="hero__title">Выбери<br><span class="grad">свой экзамен</span></h1>
+      <p class="hero__sub">Симулятор точно повторяет реальный экзамен — задания, структуру и тайминг.</p>
+    </div>
+
+    <!-- OGE / EGE TOGGLE -->
+    <div class="section-label">Тип экзамена</div>
+    <div class="exam-toggle" id="examToggle">
+      <div class="exam-toggle__slider" id="toggleSlider"></div>
+      <button class="exam-toggle__btn active" id="btnOge" onclick="selectExam('oge')">
+        <span class="label">ОГЭ</span>
+        <span class="sublabel">9 класс</span>
+      </button>
+      <button class="exam-toggle__btn" id="btnEge" onclick="selectExam('ege')">
+        <span class="label">ЕГЭ</span>
+        <span class="sublabel">11 класс</span>
+      </button>
+    </div>
+
+    <!-- SUBJECT GRID -->
+    <div class="section-label">Предмет</div>
+    <div class="subject-grid">
+
+      <div class="subject-card" id="card-math" onclick="selectSubject('math')">
+        <div class="subject-card__check">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="subject-card__icon">📐</span>
+        <span class="subject-card__name">Математика</span>
+        <span class="subject-card__meta" id="math-meta">26 заданий · 3ч 55мин</span>
+      </div>
+
+      <div class="subject-card" id="card-russian" onclick="selectSubject('russian')">
+        <div class="subject-card__check">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M2 5L4 7L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="subject-card__icon">📝</span>
+        <span class="subject-card__name">Русский язык</span>
+        <span class="subject-card__meta" id="russian-meta">33 задания · 3ч 55мин</span>
+      </div>
+
+      <div class="subject-card coming-soon">
+        <span class="coming-badge">Скоро</span>
+        <span class="subject-card__icon">🌍</span>
+        <span class="subject-card__name">Обществознание</span>
+        <span class="subject-card__meta">Готовится</span>
+      </div>
+
+      <div class="subject-card coming-soon">
+        <span class="coming-badge">Скоро</span>
+        <span class="subject-card__icon">📜</span>
+        <span class="subject-card__name">История</span>
+        <span class="subject-card__meta">Готовится</span>
+      </div>
+
+    </div>
+
+    <!-- EXAM INFO -->
+    <div class="exam-info" id="examInfo">
+      <div class="info-item">
+        <span class="info-item__val" id="info-tasks">26</span>
+        <span class="info-item__key">Заданий</span>
+      </div>
+      <div class="info-item">
+        <span class="info-item__val" id="info-time">3:55</span>
+        <span class="info-item__key">Времени</span>
+      </div>
+      <div class="info-item">
+        <span class="info-item__val" id="info-points">32</span>
+        <span class="info-item__key">Макс. баллов</span>
+      </div>
+    </div>
+
+    <!-- START BUTTON -->
+    <button class="btn-start" id="btnStart" onclick="startExam()" disabled>
+      <span>Начать экзамен</span>
+      <span class="btn-start__arrow">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M2 6H10M10 6L7 3M10 6L7 9" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </button>
+
+    <p class="hint">Выбери предмет — и кнопка станет активной</p>
+
+  </div>
+
+  <script>
+    // ── STATE ──
+    let selectedExam    = 'oge';
+    let selectedSubject = null;
+
+    // Данные по экзаменам и предметам
+    const examData = {
+      oge: {
+        math:    { tasks: 26, time: '3:55', points: 32, meta: '26 заданий · 3ч 55мин' },
+        russian: { tasks: 33, time: '3:55', points: 33, meta: '33 задания · 3ч 55мин' },
+      },
+      ege: {
+        math:    { tasks: 19, time: '3:55', points: 100, meta: '19 заданий · 3ч 55мин' },
+        russian: { tasks: 27, time: '3:30', points: 58, meta: '27 заданий · 3ч 30мин' },
+      }
+    };
+
+    // ── TOGGLE OGE / EGE ──
+    function selectExam(type) {
+      selectedExam = type;
+
+      const slider = document.getElementById('toggleSlider');
+      const btnOge = document.getElementById('btnOge');
+      const btnEge = document.getElementById('btnEge');
+
+      if (type === 'oge') {
+        slider.classList.remove('ege');
+        btnOge.classList.add('active');
+        btnEge.classList.remove('active');
+      } else {
+        slider.classList.add('ege');
+        btnEge.classList.add('active');
+        btnOge.classList.remove('active');
+      }
+
+      // Обновить мета-текст предметов
+      updateSubjectMeta();
+      // Обновить инфо-панель если предмет уже выбран
+      if (selectedSubject) updateInfoPanel();
+    }
+
+    // ── SELECT SUBJECT ──
+    function selectSubject(subj) {
+      selectedSubject = subj;
+
+      // Снять выделение со всех
+      document.querySelectorAll('.subject-card:not(.coming-soon)').forEach(c => c.classList.remove('selected'));
+      // Выделить выбранный
+      document.getElementById('card-' + subj).classList.add('selected');
+
+      // Активировать кнопку
+      document.getElementById('btnStart').disabled = false;
+      document.querySelector('.hint').innerHTML = 'Удачи! Ты справишься 💪';
+      document.querySelector('.hint span');
+
+      updateInfoPanel();
+    }
+
+    // ── UPDATE SUBJECT META ──
+    function updateSubjectMeta() {
+      const d = examData[selectedExam];
+      document.getElementById('math-meta').textContent    = d.math.meta;
+      document.getElementById('russian-meta').textContent = d.russian.meta;
+    }
+
+    // ── UPDATE INFO PANEL ──
+    function updateInfoPanel() {
+      if (!selectedSubject) return;
+      const d = examData[selectedExam][selectedSubject];
+      document.getElementById('info-tasks').textContent  = d.tasks;
+      document.getElementById('info-time').textContent   = d.time;
+      document.getElementById('info-points').textContent = d.points;
+    }
+
+    // ── START EXAM ──
+    function startExam() {
+      if (!selectedSubject) return;
+      // Передаём параметры в экзаменный экран через URL
+      const params = new URLSearchParams({
+        exam:    selectedExam,
+        subject: selectedSubject,
+      });
+      window.location.href = `instructions.html?${params.toString()}`;
+    }
+  </script>
+
+</body>
+</html>

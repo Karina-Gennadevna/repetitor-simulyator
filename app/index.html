@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #09090F;
+      --accent:   #5B6CF9;
+      --accent-2: #8B5CF6;
+      --text:     #F1F5F9;
+      --text-soft:#94A3B8;
+      --gradient: linear-gradient(135deg,#5B6CF9 0%,#8B5CF6 100%);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Inter',system-ui,sans-serif;
+      background:var(--bg); color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh; min-height:100dvh;
+      max-width:430px; margin:0 auto;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:24px 20px;
+      position:relative; overflow:hidden;
+    }
+
+    /* Ambient */
+    .glow {
+      position:fixed; top:-200px; left:50%; transform:translateX(-50%);
+      width:500px; height:500px; pointer-events:none;
+      background:radial-gradient(ellipse,rgba(91,108,249,0.18) 0%,rgba(139,92,246,0.10) 40%,transparent 70%);
+      animation:pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.8;} 50%{opacity:1;} }
+
+    .content {
+      position:relative; z-index:1;
+      text-align:center;
+      animation:fadeUp 0.6s ease both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+    /* Logo */
+    .logo {
+      width:72px; height:72px; border-radius:20px; margin:0 auto 28px;
+      background:var(--gradient);
+      display:flex; align-items:center; justify-content:center;
+      font-size:32px;
+      box-shadow:0 8px 32px rgba(91,108,249,0.4);
+    }
+
+    h1 {
+      font-size:28px; font-weight:900; letter-spacing:-0.04em;
+      line-height:1.1; margin-bottom:10px;
+    }
+    h1 span {
+      background:var(--gradient);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .sub {
+      font-size:15px; font-weight:400; color:var(--text-soft);
+      line-height:1.5; margin-bottom:40px;
+      max-width:280px; margin-left:auto; margin-right:auto;
+    }
+    .sub { margin-bottom:40px; }
+
+    .btn-start {
+      display:block; width:100%; padding:17px 24px;
+      border:none; cursor:pointer; font-family:inherit;
+      border-radius:16px; background:var(--gradient);
+      font-size:16px; font-weight:800; color:#fff; letter-spacing:-0.01em;
+      box-shadow:0 4px 24px rgba(91,108,249,0.4);
+      text-decoration:none;
+      transition:transform 0.15s, box-shadow 0.15s;
+      position:relative; overflow:hidden;
+      margin-bottom:14px;
+    }
+    .btn-start::after {
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(255,255,255,0.13) 0%,transparent 60%);
+      pointer-events:none;
+    }
+    .btn-start:active { transform:scale(0.97); box-shadow:0 2px 12px rgba(91,108,249,0.3); }
+
+    .btn-plan {
+      display:block; width:100%; padding:14px 24px;
+      border:1px solid rgba(255,255,255,0.1); cursor:pointer; font-family:inherit;
+      border-radius:16px; background:transparent;
+      font-size:14px; font-weight:600; color:var(--text-soft); letter-spacing:-0.01em;
+      text-decoration:none;
+      transition:border-color 0.15s, color 0.15s;
+    }
+    .btn-plan:active { border-color:rgba(91,108,249,0.4); color:var(--text); }
+
+    .footer-note {
+      margin-top:32px;
+      font-size:11px; color:rgba(148,163,184,0.45);
+      letter-spacing:0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow"></div>
+
+  <div class="content">
+    <div class="logo">📚</div>
+
+    <h1>Подготовься к<br><span>ОГЭ и ЕГЭ</span></h1>
+    <p class="sub">Симулятор настоящего экзамена. Персональный маршрут. Разбор каждой ошибки.</p>
+
+    <a href="onboarding.html" class="btn-start">Начать подготовку</a>
+    <a href="today.html" class="btn-plan">У меня уже есть план</a>
+
+    <p class="footer-note">ОГЭ · ЕГЭ · Математика · Русский язык</p>
+  </div>
+
+</body>
+</html>

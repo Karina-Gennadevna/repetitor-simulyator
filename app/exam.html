@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Экзамен — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════ */
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-hover:      #1C1F2A;
+
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-glow:   rgba(91, 108, 249, 0.35);
+      --accent-dim:    rgba(91, 108, 249, 0.12);
+      --accent-border: rgba(91, 108, 249, 0.30);
+      --gradient:      linear-gradient(135deg, #5B6CF9 0%, #8B5CF6 100%);
+      --gradient-glow: 0 4px 24px rgba(91,108,249,0.45);
+
+      --success:        #34D399;
+      --success-dim:    rgba(52, 211, 153, 0.12);
+      --success-border: rgba(52, 211, 153, 0.30);
+
+      --warning:        #F59E0B;
+      --warning-dim:    rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.30);
+
+      --danger:         #F87171;
+      --danger-dim:     rgba(248, 113, 113, 0.12);
+      --danger-border:  rgba(248, 113, 113, 0.30);
+
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+
+      --border:        rgba(255,255,255,0.07);
+      --border-soft:   rgba(255,255,255,0.04);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  18px;
+      --radius-xl:  24px;
+
+      --topbar-h:   60px;
+      --exambar-h:  88px;
+      --bottom-h:   136px;
+      --safe-top:   env(safe-area-inset-top, 0px);
+      --safe-bot:   env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ═══════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input, textarea { font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ═══════════════════════════════════════
+       AMBIENT BACKGROUND
+    ═══════════════════════════════════════ */
+    .bg-glow {
+      position: fixed; top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 360px; height: 300px;
+      background: radial-gradient(circle, rgba(91,108,249,0.10) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       TOPBAR — fixed
+    ═══════════════════════════════════════ */
+    .topbar {
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: var(--topbar-h);
+      background: rgba(9, 9, 15, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+    }
+    .topbar__exit {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-soft);
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .topbar__exit:hover { background: var(--danger-dim); border-color: var(--danger-border); color: var(--danger); }
+
+    .topbar__center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      padding: 0 12px;
+    }
+    .topbar__subject {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .topbar__exam-type {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-accent);
+    }
+
+    /* ── TIMER ── */
+    .timer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      flex-shrink: 0;
+      transition: all 0.4s;
+    }
+    .timer__dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse-dot 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .timer__val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      min-width: 60px;
+      text-align: right;
+    }
+    /* Timer warning states */
+    .timer.warn   { border-color: var(--warning-border); background: var(--warning-dim); }
+    .timer.warn   .timer__dot { background: var(--warning); }
+    .timer.warn   .timer__val { color: var(--warning); }
+    .timer.danger { border-color: var(--danger-border); background: var(--danger-dim); }
+    .timer.danger .timer__dot { background: var(--danger); animation: pulse-dot 0.8s ease-in-out infinite; }
+    .timer.danger .timer__val { color: var(--danger); animation: danger-pulse 0.8s ease-in-out infinite; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.7); }
+    }
+    @keyframes danger-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.6; }
+    }
+
+    /* ═══════════════════════════════════════
+       EXAM BAR — fixed (below topbar)
+    ═══════════════════════════════════════ */
+    .exam-bar {
+      position: fixed;
+      top: var(--topbar-h);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: rgba(10, 11, 18, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 12px 16px 14px;
+      z-index: 99;
+    }
+    .exam-bar__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .q-num-label {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .part-chip {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      padding: 4px 9px;
+      border-radius: 6px;
+    }
+    .part-chip.part2 {
+      color: #fb923c;
+      background: rgba(251,146,60,0.10);
+      border-color: rgba(251,146,60,0.28);
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 3px;
+      background: var(--bg-elevated);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 7px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .progress-meta span {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .progress-meta .pct { color: var(--text-accent); }
+
+    /* ═══════════════════════════════════════
+       SCROLL AREA
+    ═══════════════════════════════════════ */
+    .scroll-area {
+      position: relative;
+      z-index: 1;
+      padding-top: calc(var(--topbar-h) + var(--exambar-h) + 16px);
+      padding-bottom: calc(var(--bottom-h) + var(--safe-bot) + 12px);
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    /* ═══════════════════════════════════════
+       QUESTION CARD
+    ═══════════════════════════════════════ */
+    .q-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 22px 20px 20px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.35s ease both;
+    }
+    .q-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91,108,249,0.45), transparent);
+    }
+    .q-card__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .q-card__num-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      padding: 2px 8px;
+      border-radius: 5px;
+    }
+    .q-card__text {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+    /* Math formula highlight */
+    .q-card__text .formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      color: var(--text-accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      display: block;
+      margin: 10px 0;
+      letter-spacing: 0.02em;
+    }
+    .q-card__hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .q-card__hint svg { opacity: 0.6; }
+
+    /* ── ANSWERED STATE on card ── */
+    .q-card.answered {
+      border-color: var(--success-border);
+    }
+    .q-card.answered::before {
+      background: linear-gradient(90deg, transparent, rgba(52,211,153,0.35), transparent);
+    }
+
+    /* ── SKIPPED STATE ── */
+    .q-card.skipped { border-color: var(--warning-border); }
+
+    /* ── SAVED TOAST ── */
+    .saved-toast {
+      position: absolute;
+      top: 14px; right: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--success);
+      background: var(--success-dim);
+      border: 1px solid var(--success-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: all 0.25s;
+      pointer-events: none;
+    }
+    .saved-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ═══════════════════════════════════════
+       ANSWER AREA — SHORT
+    ═══════════════════════════════════════ */
+    .answer-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      margin-bottom: 12px;
+      animation: fadeUp 0.35s ease 0.07s both;
+    }
+    .answer-block__label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* Short answer input */
+    .input-wrap {
+      position: relative;
+    }
+    .answer-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 15px 48px 15px 16px;
+      font-size: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s;
+      caret-color: var(--accent);
+    }
+    .answer-input::placeholder {
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .answer-input:focus {
+      border-color: var(--accent-border);
+      background: var(--bg-hover);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .answer-input.has-value {
+      border-color: var(--success-border);
+      background: var(--success-dim);
+      color: var(--success);
+    }
+    .input-clear {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.18s;
+    }
+    .input-clear.visible { opacity: 1; }
+    .input-clear:hover { color: var(--danger); border-color: var(--danger-border); background: var(--danger-dim); }
+
+    .answer-example {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .answer-example span {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-soft);
+    }
+
+    /* ═══════════════════════════════════════
+       ANSWER AREA — MULTIPLE CHOICE
+    ═══════════════════════════════════════ */
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .choice-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: left;
+      width: 100%;
+    }
+    .choice-item:hover { border-color: var(--accent-border); background: var(--bg-hover); }
+    .choice-item.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .choice-letter {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: all 0.18s;
+      letter-spacing: 0;
+    }
+    .choice-item.selected .choice-letter {
+      background: var(--gradient);
+      border-color: transparent;
+      color: #fff;
+    }
+    .choice-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-soft);
+      line-height: 1.4;
+      transition: color 0.18s;
+    }
+    .choice-item.selected .choice-text { color: var(--text); }
+    .choice-check {
+      margin-left: auto;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      flex-shrink: 0;
+    }
+    .choice-item.selected .choice-check { opacity: 1; transform: scale(1); }
+
+    /* ═══════════════════════════════════════
+       ANSWER AREA — EXTENDED (Part 2)
+    ═══════════════════════════════════════ */
+    .extended-wrap {}
+    .extended-textarea {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      min-height: 160px;
+      line-height: 1.7;
+      transition: all 0.2s;
+      caret-color: var(--accent);
+    }
+    .extended-textarea::placeholder { color: var(--text-muted); }
+    .extended-textarea:focus {
+      border-color: var(--accent-border);
+      background: var(--bg-hover);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .extended-textarea.has-value { border-color: rgba(251,146,60,0.30); }
+    .extended-ai-note {
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px 14px;
+      background: rgba(251,146,60,0.07);
+      border: 1px solid rgba(251,146,60,0.18);
+      border-radius: var(--radius-sm);
+    }
+    .extended-ai-note__icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .extended-ai-note__text {
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+    .extended-ai-note__text strong { color: #fb923c; font-weight: 700; }
+
+    /* ═══════════════════════════════════════
+       EDIT NOTE
+    ═══════════════════════════════════════ */
+    .edit-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      animation: fadeUp 0.35s ease 0.14s both;
+    }
+
+    /* ═══════════════════════════════════════
+       PART TRANSITION BANNER
+    ═══════════════════════════════════════ */
+    .part-banner {
+      background: rgba(251,146,60,0.07);
+      border: 1px solid rgba(251,146,60,0.22);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: none;
+      animation: fadeUp 0.35s ease both;
+    }
+    .part-banner.visible { display: flex; gap: 12px; align-items: flex-start; }
+    .part-banner__icon { font-size: 20px; flex-shrink: 0; }
+    .part-banner__title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fb923c;
+      margin-bottom: 3px;
+    }
+    .part-banner__desc {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-soft);
+    }
+
+    /* ═══════════════════════════════════════
+       BOTTOM BAR — fixed
+    ═══════════════════════════════════════ */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: rgba(9, 9, 15, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px calc(12px + var(--safe-bot));
+      z-index: 100;
+    }
+
+    /* Map button */
+    .btn-map {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-soft);
+      transition: all 0.18s;
+      margin-bottom: 10px;
+    }
+    .btn-map:hover { border-color: var(--accent-border); color: var(--text-accent); }
+    .map-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-left: auto;
+    }
+
+    /* Nav row */
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .btn-skip {
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: all 0.18s;
+    }
+    .btn-skip:hover { border-color: var(--warning-border); color: var(--warning); background: var(--warning-dim); }
+    .btn-next {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--gradient);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: var(--gradient-glow);
+      transition: all 0.2s;
+      letter-spacing: -0.01em;
+    }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(91,108,249,0.55); }
+    .btn-next:active { transform: translateY(0); }
+    .btn-next__arrow {
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s;
+    }
+    .btn-next:hover .btn-next__arrow { transform: translateX(2px); }
+
+    /* btn-next — finish state */
+    .btn-next.finish { background: linear-gradient(135deg, #34D399, #059669); box-shadow: 0 4px 24px rgba(52,211,153,0.4); }
+    .btn-next.finish:hover { box-shadow: 0 8px 32px rgba(52,211,153,0.6); }
+
+    .bottom-hint {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* ═══════════════════════════════════════
+       TASK MAP — bottom sheet
+    ═══════════════════════════════════════ */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .sheet-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .sheet {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%; max-width: 430px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      padding: 0 20px calc(24px + var(--safe-bot));
+      max-height: 88vh;
+      overflow-y: auto;
+      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+      overscroll-behavior: contain;
+    }
+    .sheet-overlay.open .sheet { transform: translateX(-50%) translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 12px auto 18px;
+    }
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .sheet-close {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-soft);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .sheet-close:hover { background: var(--danger-dim); border-color: var(--danger-border); color: var(--danger); }
+
+    /* Stats row */
+    .sheet-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .stat-pill {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .stat-pill__val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .stat-pill__key {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+    .stat-pill.answered { border-color: var(--success-border); }
+    .stat-pill.answered .stat-pill__val { color: var(--success); }
+    .stat-pill.skipped  { border-color: var(--warning-border); }
+    .stat-pill.skipped  .stat-pill__val { color: var(--warning); }
+    .stat-pill.total    .stat-pill__val { color: var(--text); }
+
+    /* Part label */
+    .sheet-part-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+    .sheet-part-label + .sheet-part-label { margin-top: 16px; }
+
+    /* Task grid */
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+    .task-cell {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: 1.5px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      position: relative;
+    }
+    .task-cell:hover { border-color: var(--accent-border); color: var(--text-accent); transform: scale(1.06); }
+    .task-cell.current {
+      background: var(--gradient);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(91,108,249,0.4);
+    }
+    .task-cell.answered {
+      background: var(--success-dim);
+      border-color: var(--success-border);
+      color: var(--success);
+    }
+    .task-cell.skipped {
+      background: var(--warning-dim);
+      border-color: var(--warning-border);
+      color: var(--warning);
+    }
+    /* Dot indicator */
+    .task-cell::after {
+      content: '';
+      position: absolute;
+      bottom: 3px; right: 3px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      opacity: 0;
+    }
+    .task-cell.answered::after { background: var(--success); opacity: 1; }
+    .task-cell.skipped::after  { background: var(--warning); opacity: 1; }
+
+    /* Sheet legend */
+    .sheet-legend {
+      display: flex;
+      gap: 14px;
+      margin: 12px 0 20px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-dot.answered { background: var(--success); }
+    .legend-dot.skipped  { background: var(--warning); }
+    .legend-dot.current  { background: var(--accent); }
+    .legend-dot.empty    { background: var(--bg-hover); border: 1.5px solid var(--border); }
+
+    /* Finish button */
+    .btn-finish {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #34D399, #059669);
+      border-radius: var(--radius-lg);
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(52,211,153,0.35);
+      transition: all 0.2s;
+      margin-top: 20px;
+    }
+    .btn-finish:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(52,211,153,0.5); }
+
+    /* ═══════════════════════════════════════
+       EXIT CONFIRMATION MODAL
+    ═══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 340px;
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal__icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+      display: block;
+      text-align: center;
+    }
+    .modal__title {
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .modal__desc {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-soft);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .modal__actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modal__btn {
+      padding: 13px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: none;
+    }
+    .modal__btn.secondary {
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      color: var(--text-soft);
+    }
+    .modal__btn.secondary:hover { border-color: var(--accent-border); color: var(--text); }
+    .modal__btn.danger {
+      background: var(--danger-dim);
+      border: 1.5px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .modal__btn.danger:hover { background: var(--danger); color: #fff; }
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .q-enter {
+      animation: fadeUp 0.28s ease both;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <!-- ═══════════════════════════════════════
+       TOPBAR
+  ═══════════════════════════════════════ -->
+  <header class="topbar">
+    <button class="topbar__exit" onclick="openExitModal()" title="Выйти из экзамена">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="topbar__center">
+      <div class="topbar__subject" id="topSubject">Математика</div>
+      <div class="topbar__exam-type" id="topExamType">ОГЭ • 9 класс</div>
+    </div>
+    <div class="timer" id="timerEl">
+      <div class="timer__dot"></div>
+      <div class="timer__val" id="timerVal">03:55:00</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════
+       EXAM BAR
+  ═══════════════════════════════════════ -->
+  <div class="exam-bar">
+    <div class="exam-bar__top">
+      <div class="q-num-label" id="qNumLabel">Вопрос 1 из 26</div>
+      <div class="part-chip" id="partChip">Часть 1 • Краткий ответ</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+    <div class="progress-meta">
+      <span class="pct" id="progressPct">Прогресс 0%</span>
+      <span id="progressLeft">Осталось 26 заданий</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SCROLL AREA
+  ═══════════════════════════════════════ -->
+  <main class="scroll-area">
+
+    <!-- Part transition banner -->
+    <div class="part-banner" id="partBanner">
+      <div class="part-banner__icon">✏️</div>
+      <div>
+        <div class="part-banner__title">Часть 2 — Развёрнутый ответ</div>
+        <div class="part-banner__desc">Теперь задания требуют полного решения с обоснованием. ИИ проверит каждый ответ по критериям ФИПИ.</div>
+      </div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="q-card" id="qCard">
+      <div class="saved-toast" id="savedToast">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Сохранено
+      </div>
+      <div class="q-card__badge">
+        <div class="q-card__num-pill" id="qNumPill">01</div>
+        <span id="qTypeBadge">Краткий ответ</span>
+      </div>
+      <div class="q-card__text" id="qText">Загрузка...</div>
+      <div class="q-card__hint" id="qHint">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M6 5.5V8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="6" cy="4" r="0.6" fill="currentColor"/>
+        </svg>
+        <span id="qHintText">Запишите только число</span>
+      </div>
+    </div>
+
+    <!-- Answer Area (динамически заполняется JS) -->
+    <div id="answerArea"></div>
+
+    <!-- Edit note -->
+    <div class="edit-note">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+        <path d="M7.5 1.5L9.5 3.5L3.5 9.5H1.5V7.5L7.5 1.5Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" opacity="0.5"/>
+      </svg>
+      Ответ можно изменить до завершения экзамена
+    </div>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       BOTTOM BAR
+  ═══════════════════════════════════════ -->
+  <div class="bottom-bar">
+    <button class="btn-map" onclick="openTaskMap()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="1" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="8" y="1" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="1" y="8" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+        <rect x="8" y="8" width="5" height="5" rx="1.2" stroke="currentColor" stroke-width="1.3"/>
+      </svg>
+      Карта заданий
+      <div class="map-counter" id="mapCounter">0/26</div>
+    </button>
+
+    <div class="nav-row">
+      <button class="btn-skip" id="btnSkip" onclick="skipQuestion()">Пропустить</button>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">
+        <span id="btnNextLabel">Следующее</span>
+        <span class="btn-next__arrow">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M2 5.5H9M9 5.5L6.5 3M9 5.5L6.5 8" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+
+    <div class="bottom-hint">Можно пропускать задания и возвращаться к ним позже</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TASK MAP SHEET
+  ═══════════════════════════════════════ -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="handleOverlayClick(event)">
+    <div class="sheet" id="taskSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">Карта заданий</span>
+        <button class="sheet-close" onclick="closeTaskMap()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sheet-stats">
+        <div class="stat-pill answered">
+          <span class="stat-pill__val" id="statAnswered">0</span>
+          <span class="stat-pill__key">Отвечено</span>
+        </div>
+        <div class="stat-pill skipped">
+          <span class="stat-pill__val" id="statSkipped">0</span>
+          <span class="stat-pill__key">Пропущено</span>
+        </div>
+        <div class="stat-pill total">
+          <span class="stat-pill__val" id="statRemaining">26</span>
+          <span class="stat-pill__key">Осталось</span>
+        </div>
+      </div>
+
+      <div class="sheet-legend">
+        <div class="legend-item"><div class="legend-dot current"></div>Текущее</div>
+        <div class="legend-item"><div class="legend-dot answered"></div>Отвечено</div>
+        <div class="legend-item"><div class="legend-dot skipped"></div>Пропущено</div>
+        <div class="legend-item"><div class="legend-dot empty"></div>Не начато</div>
+      </div>
+
+      <div id="sheetPart1Label" class="sheet-part-label">Часть 1 — Краткий ответ</div>
+      <div class="task-grid" id="taskGrid1"></div>
+
+      <div id="sheetPart2Label" class="sheet-part-label">Часть 2 — Развёрнутый ответ</div>
+      <div class="task-grid" id="taskGrid2"></div>
+
+      <button class="btn-finish" onclick="finishExam()">Завершить экзамен</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       EXIT MODAL
+  ═══════════════════════════════════════ -->
+  <div class="modal-overlay" id="exitModal">
+    <div class="modal">
+      <span class="modal__icon">⚠️</span>
+      <div class="modal__title">Выйти из экзамена?</div>
+      <div class="modal__desc">Таймер остановится, прогресс этой попытки не сохранится. Результат не будет засчитан.</div>
+      <div class="modal__actions">
+        <button class="modal__btn secondary" onclick="closeExitModal()">Продолжить</button>
+        <button class="modal__btn danger" onclick="confirmExit()">Выйти</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════ -->
+  <script>
+    /* ─────────────────────────────────────
+       ПАРАМЕТРЫ ИЗ URL
+    ───────────────────────────────────── */
+    const urlParams = new URLSearchParams(window.location.search);
+    const EXAM      = urlParams.get('exam')    || 'oge';
+    const SUBJECT   = urlParams.get('subject') || 'math';
+
+    /* ─────────────────────────────────────
+       КОНФИГУРАЦИЯ ЭКЗАМЕНОВ
+    ───────────────────────────────────── */
+    const EXAM_CONFIG = {
+      oge: {
+        math:    { label: 'Математика', typeLabel: 'ОГЭ • 9 класс', duration: 235 * 60 },
+        russian: { label: 'Русский язык', typeLabel: 'ОГЭ • 9 класс', duration: 235 * 60 },
+      },
+      ege: {
+        math:    { label: 'Математика', typeLabel: 'ЕГЭ • 11 класс', duration: 235 * 60 },
+        russian: { label: 'Русский язык', typeLabel: 'ЕГЭ • 11 класс', duration: 210 * 60 },
+      },
+    };
+
+    /* ─────────────────────────────────────
+       БАЗА ВОПРОСОВ
+    ───────────────────────────────────── */
+    const QUESTIONS = {
+      oge: {
+        math: [
+          // ── ЧАСТЬ 1 ── краткий ответ
+          { id:1,  part:1, type:'short',
+            text:'Вычислите: <span class="formula">14 − 6 × 2 + 3</span>',
+            hint:'Запишите только целое число', example:'5' },
+          { id:2,  part:1, type:'short',
+            text:'Найдите значение выражения: <span class="formula">a² + 2ab + b² при a = 3, b = 2</span>',
+            hint:'Запишите только число', example:'25' },
+          { id:3,  part:1, type:'choice',
+            text:'В магазине действует скидка 25% на все товары. Цена куртки до скидки составляла 3 200 ₽. Какова цена куртки со скидкой?',
+            hint:'Выберите один правильный ответ',
+            options:['2 800 ₽','2 400 ₽','2 100 ₽','1 600 ₽'] },
+          { id:4,  part:1, type:'short',
+            text:'Представьте число 0,625 в виде обыкновенной несократимой дроби.',
+            hint:'Запишите в виде числителя и знаменателя через дробную черту', example:'5/8' },
+          { id:5,  part:1, type:'short',
+            text:'Решите уравнение: <span class="formula">5x − 3 = 2x + 9</span>',
+            hint:'Запишите только число', example:'4' },
+          { id:6,  part:1, type:'short',
+            text:'Найдите наибольшее целое число, удовлетворяющее неравенству: <span class="formula">3x + 2 &lt; 14</span>',
+            hint:'Запишите только целое число', example:'3' },
+          { id:7,  part:1, type:'choice',
+            text:'Два угла треугольника равны 47° и 83°. Найдите третий угол треугольника.',
+            hint:'Выберите один правильный ответ',
+            options:['40°','50°','53°','60°'] },
+          { id:8,  part:1, type:'short',
+            text:'Периметр прямоугольника равен 36 см, а одна из его сторон равна 8 см. Найдите площадь этого прямоугольника.',
+            hint:'Запишите ответ в кв. см', example:'80' },
+          { id:9,  part:1, type:'choice',
+            text:'Брошена правильная игральная кость (кубик с числами от 1 до 6). Найдите вероятность того, что выпадет чётное число.',
+            hint:'Запишите вероятность в виде десятичной дроби',
+            options:['0,25','0,33','0,5','0,67'] },
+          { id:10, part:1, type:'short',
+            text:'Найдите значение выражения: <span class="formula">√144 + 5²</span>',
+            hint:'Запишите только число', example:'37' },
+          { id:11, part:1, type:'short',
+            text:'Расстояние между городами 360 км. Автомобиль проехал это расстояние со скоростью 90 км/ч. Сколько часов занял путь?',
+            hint:'Запишите только число', example:'4' },
+          { id:12, part:1, type:'short',
+            text:'Упростите выражение: <span class="formula">(2a − b)(2a + b) − 4a² при a = 3, b = 2</span>',
+            hint:'Запишите только число', example:'-4' },
+          { id:13, part:1, type:'choice',
+            text:'На диаграмме показан объём продаж магазина за 4 квартала. Выручка в I квартале — 120 тыс. ₽, во II — на 20% больше, в III — 90 тыс. ₽. Определите, в каком квартале выручка наибольшая.',
+            hint:'Выберите один вариант',
+            options:['I квартал','II квартал','III квартал','IV квартал'] },
+          { id:14, part:1, type:'short',
+            text:'Велосипедист проехал 24 км за 1,5 часа. Найдите его среднюю скорость в км/ч.',
+            hint:'Запишите только число', example:'16' },
+          { id:15, part:1, type:'short',
+            text:'Цена товара выросла с 500 ₽ до 620 ₽. На сколько процентов увеличилась цена?',
+            hint:'Запишите только число (без знака %)', example:'24' },
+          { id:16, part:1, type:'short',
+            text:'Решите систему уравнений: <span class="formula">x + y = 10\n2x − y = 5</span>\nНайдите x.',
+            hint:'Запишите только значение x', example:'5' },
+          { id:17, part:1, type:'choice',
+            text:'Радиус окружности равен 7 см. Найдите длину окружности. (Используйте π ≈ 3,14)',
+            hint:'Выберите один правильный ответ',
+            options:['21,98 см','43,96 см','153,86 см','28 см'] },
+          { id:18, part:1, type:'short',
+            text:'Найдите значение выражения: <span class="formula">2⁵ − 4 × 3 + 7</span>',
+            hint:'Запишите только число', example:'27' },
+          { id:19, part:1, type:'short',
+            text:'В числовом ряду: 3, 7, 11, 15, … найдите 10-й член арифметической прогрессии.',
+            hint:'Запишите только число', example:'39' },
+          // ── ЧАСТЬ 2 ── развёрнутый ответ
+          { id:20, part:2, type:'extended',
+            text:'Решите уравнение: <span class="formula">x² − 7x + 12 = 0</span>\nЗапишите полное решение с нахождением дискриминанта и обоих корней.',
+            hint:'Напишите полное решение с обоснованием' },
+          { id:21, part:2, type:'extended',
+            text:'В первый день туристы прошли на 12 км больше, чем во второй. Всего за два дня они прошли 48 км. Составьте уравнение и найдите, сколько километров туристы прошли в каждый из дней.',
+            hint:'Составьте уравнение, решите и дайте ответ с проверкой' },
+          { id:22, part:2, type:'extended',
+            text:'В прямоугольном треугольнике ABC один катет равен 6 см, гипотенуза равна 10 см. Найдите второй катет и площадь треугольника. Запишите полное решение.',
+            hint:'Используйте теорему Пифагора, запишите все шаги' },
+          { id:23, part:2, type:'extended',
+            text:'Постройте и исследуйте функцию: <span class="formula">y = x² − 4x + 3</span>\nНайдите координаты вершины параболы, нули функции и укажите, при каких значениях x функция принимает отрицательные значения.',
+            hint:'Запишите полное исследование функции' },
+          { id:24, part:2, type:'extended',
+            text:'Два рабочих вместе выполнили заказ за 6 часов. Первый рабочий выполняет такой заказ на 5 часов быстрее, чем второй. Найдите, за сколько часов каждый рабочий выполнит заказ в одиночку.',
+            hint:'Составьте уравнение и решите его. Проверьте ответ.' },
+          { id:25, part:2, type:'extended',
+            text:'Два велосипедиста выехали одновременно навстречу друг другу из городов А и Б, расстояние между которыми 75 км. Скорость первого велосипедиста на 5 км/ч больше скорости второго. Они встретились через 3 часа. Найдите скорость каждого велосипедиста.',
+            hint:'Запишите уравнение, решение и ответ' },
+          { id:26, part:2, type:'extended',
+            text:'Докажите, что для любого натурального числа n выражение <span class="formula">n² + n = n(n+1)</span> делится на 2. Запишите полное доказательство.',
+            hint:'Рассмотрите оба случая: n чётное и n нечётное' },
+        ],
+        russian: [
+          { id:1, part:1, type:'extended',
+            text:'Прослушайте текст и напишите краткое изложение, сохранив все микротемы. Текст о важности чтения в жизни современного человека.\n\n[Текст воспроизводится дважды]',
+            hint:'Напишите сжатое изложение. Объём — не менее 70 слов.' },
+          { id:2, part:1, type:'choice',
+            text:'В каком слове допущена ошибка в постановке ударения?',
+            hint:'Выберите один вариант',
+            options:['звонИт','красИвее','дОговор','каталОг'] },
+          { id:3, part:1, type:'short',
+            text:'Укажите варианты ответов, в которых во всех словах одного ряда содержится безударная проверяемая гласная корня:\n1) смягчение, примерить, разведчик\n2) предположение, накалить, развевался\nЗапишите номера ответов.',
+            hint:'Запишите номера через запятую', example:'1, 2' },
+          { id:4, part:2, type:'extended',
+            text:'Напишите сочинение-рассуждение на тему: «Что значит быть настоящим другом?»\n\nИспользуйте в качестве аргументов примеры из читательского и жизненного опыта.',
+            hint:'Объём — не менее 90 слов. Тезис → аргументы → вывод' },
+        ],
+      },
+      ege: {
+        math: [
+          { id:1, part:1, type:'short',
+            text:'Найдите значение выражения: <span class="formula">log₂ 32 + log₃ 81</span>',
+            hint:'Запишите только число', example:'9' },
+          { id:2, part:1, type:'short',
+            text:'Вычислите: <span class="formula">(√5 + √3)(√5 − √3)</span>',
+            hint:'Запишите только число', example:'2' },
+          { id:3, part:1, type:'short',
+            text:'Найдите производную функции: <span class="formula">f(x) = 3x² − 5x + 2</span>\nВычислите f\'(2).',
+            hint:'Запишите только число', example:'7' },
+          { id:4, part:1, type:'choice',
+            text:'Прямая y = kx + b проходит через точки (0, 3) и (2, 7). Найдите значение k.',
+            hint:'Выберите один вариант',
+            options:['1','2','3','4'] },
+          { id:5, part:2, type:'extended',
+            text:'Решите уравнение: <span class="formula">2sin²x + sin x − 1 = 0</span>\nЗапишите все решения на промежутке [0; 2π].',
+            hint:'Запишите полное решение с заменой переменной' },
+        ],
+        russian: [
+          { id:1, part:1, type:'choice',
+            text:'Прочитайте текст. Укажите варианты ответов, в которых верно передана ГЛАВНАЯ информация, содержащаяся в тексте.',
+            hint:'Выберите один вариант',
+            options:['Вариант А','Вариант Б','Вариант В','Вариант Г'] },
+          { id:2, part:2, type:'extended',
+            text:'Напишите сочинение по прочитанному тексту. Сформулируйте одну из проблем, поставленных автором текста. Прокомментируйте сформулированную проблему.',
+            hint:'Объём — не менее 150 слов. Следуйте структуре: проблема → комментарий → позиция автора → своя позиция → заключение' },
+        ],
+      },
+    };
+
+    /* ─────────────────────────────────────
+       СОСТОЯНИЕ
+    ───────────────────────────────────── */
+    const config    = EXAM_CONFIG[EXAM][SUBJECT];
+    const questions = QUESTIONS[EXAM][SUBJECT];
+    const total     = questions.length;
+    const answers   = new Array(total).fill(null);   // null | string
+    const skipped   = new Set();
+    let   current   = 0;
+    let   timeLeft  = config.duration;
+    let   timerID   = null;
+    let   shownPart2Banner = false;
+
+    /* ─────────────────────────────────────
+       ИНИЦИАЛИЗАЦИЯ
+    ───────────────────────────────────── */
+    function init() {
+      document.getElementById('topSubject').textContent   = config.label;
+      document.getElementById('topExamType').textContent  = config.typeLabel;
+      renderQuestion(0);
+      startTimer();
+    }
+
+    /* ─────────────────────────────────────
+       ТАЙМЕР
+    ───────────────────────────────────── */
+    function startTimer() {
+      renderTimer();
+      timerID = setInterval(() => {
+        if (timeLeft <= 0) { clearInterval(timerID); finishExam(); return; }
+        timeLeft--;
+        renderTimer();
+      }, 1000);
+    }
+
+    function renderTimer() {
+      const h = Math.floor(timeLeft / 3600);
+      const m = Math.floor((timeLeft % 3600) / 60);
+      const s = timeLeft % 60;
+      document.getElementById('timerVal').textContent =
+        `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+      const el = document.getElementById('timerEl');
+      el.classList.remove('warn', 'danger');
+      if (timeLeft <= 5 * 60)       el.classList.add('danger');
+      else if (timeLeft <= 30 * 60) el.classList.add('warn');
+    }
+
+    /* ─────────────────────────────────────
+       РЕНДЕР ВОПРОСА
+    ───────────────────────────────────── */
+    function renderQuestion(idx) {
+      current = idx;
+      const q = questions[idx];
+
+      // Part 2 banner
+      if (q.part === 2 && !shownPart2Banner) {
+        shownPart2Banner = true;
+        document.getElementById('partBanner').classList.add('visible');
+      } else {
+        document.getElementById('partBanner').classList.remove('visible');
+      }
+
+      // Exam bar
+      document.getElementById('qNumLabel').textContent = `Вопрос ${idx + 1} из ${total}`;
+      const chip = document.getElementById('partChip');
+      if (q.part === 2) {
+        chip.textContent = 'Часть 2 • Развёрнутый ответ';
+        chip.className = 'part-chip part2';
+      } else {
+        chip.textContent = 'Часть 1 • Краткий ответ';
+        chip.className = 'part-chip';
+      }
+      updateProgress();
+
+      // Question card
+      const card = document.getElementById('qCard');
+      card.classList.remove('answered', 'skipped', 'q-enter');
+      void card.offsetWidth;
+      card.classList.add('q-enter');
+
+      if (answers[idx] !== null) card.classList.add('answered');
+      else if (skipped.has(idx))  card.classList.add('skipped');
+
+      document.getElementById('qNumPill').textContent  = String(idx + 1).padStart(2, '0');
+      document.getElementById('qText').innerHTML       = q.text;
+      document.getElementById('qHintText').textContent = q.hint;
+
+      const typeLabelMap = { short: 'Краткий ответ', choice: 'Один из вариантов', extended: 'Развёрнутый ответ' };
+      document.getElementById('qTypeBadge').textContent = typeLabelMap[q.type] || '';
+
+      // Answer area
+      renderAnswerArea(q, idx);
+
+      // Next button label
+      const btnNext = document.getElementById('btnNext');
+      const btnNextLabel = document.getElementById('btnNextLabel');
+      if (idx === total - 1) {
+        btnNextLabel.textContent = 'Завершить';
+        btnNext.classList.add('finish');
+      } else {
+        btnNextLabel.textContent = 'Следующее';
+        btnNext.classList.remove('finish');
+      }
+
+      // Skip button — hide on last
+      document.getElementById('btnSkip').style.display = idx === total - 1 ? 'none' : '';
+
+      updateMapCounter();
+      document.querySelector('.scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ─────────────────────────────────────
+       РЕНДЕР ОБЛАСТИ ОТВЕТА
+    ───────────────────────────────────── */
+    function renderAnswerArea(q, idx) {
+      const area = document.getElementById('answerArea');
+      area.innerHTML = '';
+
+      if (q.type === 'short') {
+        area.innerHTML = `
+          <div class="answer-block">
+            <div class="answer-block__label">Ваш ответ</div>
+            <div class="input-wrap">
+              <input class="answer-input ${answers[idx] ? 'has-value' : ''}"
+                id="answerInput"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                autocorrect="off"
+                spellcheck="false"
+                placeholder="Введите ответ"
+                value="${answers[idx] || ''}"
+              />
+              <button class="input-clear ${answers[idx] ? 'visible' : ''}" id="clearBtn" onclick="clearAnswer()">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M7.5 2.5L2.5 7.5M2.5 2.5L7.5 7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="answer-example">Например: <span>${q.example || '—'}</span></div>
+          </div>`;
+
+        const input = document.getElementById('answerInput');
+        input.addEventListener('input', () => {
+          const val = input.value.trim();
+          saveAnswer(val || null);
+          input.classList.toggle('has-value', !!val);
+          document.getElementById('clearBtn').classList.toggle('visible', !!val);
+        });
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') nextQuestion(); });
+        setTimeout(() => input.focus(), 300);
+
+      } else if (q.type === 'choice') {
+        const letters = ['А', 'Б', 'В', 'Г'];
+        const items = q.options.map((opt, i) => `
+          <button class="choice-item ${answers[idx] === String(i) ? 'selected' : ''}"
+            onclick="selectChoice(${i})" data-idx="${i}">
+            <div class="choice-letter">${letters[i]}</div>
+            <div class="choice-text">${opt}</div>
+            <div class="choice-check">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                <path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </button>`).join('');
+
+        area.innerHTML = `
+          <div class="answer-block">
+            <div class="answer-block__label">Выберите ответ</div>
+            <div class="choice-list">${items}</div>
+          </div>`;
+
+      } else if (q.type === 'extended') {
+        area.innerHTML = `
+          <div class="answer-block">
+            <div class="answer-block__label">Развёрнутый ответ</div>
+            <div class="extended-wrap">
+              <textarea class="extended-textarea ${answers[idx] ? 'has-value' : ''}"
+                id="extendedInput"
+                placeholder="Запишите полное решение здесь…"
+              >${answers[idx] || ''}</textarea>
+              <div class="extended-ai-note">
+                <span class="extended-ai-note__icon">🤖</span>
+                <span class="extended-ai-note__text"><strong>ИИ проверит ваш ответ</strong> по критериям ФИПИ после завершения экзамена и даст подробную обратную связь.</span>
+              </div>
+            </div>
+          </div>`;
+
+        const ta = document.getElementById('extendedInput');
+        ta.addEventListener('input', () => {
+          const val = ta.value.trim();
+          saveAnswer(val || null);
+          ta.classList.toggle('has-value', !!val);
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────
+       СОХРАНЕНИЕ ОТВЕТА
+    ───────────────────────────────────── */
+    function saveAnswer(val) {
+      answers[current] = val;
+      skipped.delete(current);
+
+      const card = document.getElementById('qCard');
+      card.classList.toggle('answered', val !== null);
+      card.classList.toggle('skipped', false);
+
+      // Toast
+      if (val !== null) showSavedToast();
+      updateMapCounter();
+      updateProgress();
+    }
+
+    function selectChoice(idx) {
+      const strIdx = String(idx);
+      saveAnswer(strIdx);
+      document.querySelectorAll('.choice-item').forEach((el, i) => {
+        el.classList.toggle('selected', i === idx);
+      });
+    }
+
+    function clearAnswer() {
+      answers[current] = null;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').classList.remove('has-value');
+      document.getElementById('clearBtn').classList.remove('visible');
+      document.getElementById('qCard').classList.remove('answered');
+      updateMapCounter();
+      updateProgress();
+    }
+
+    function showSavedToast() {
+      const t = document.getElementById('savedToast');
+      t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 1500);
+    }
+
+    /* ─────────────────────────────────────
+       НАВИГАЦИЯ
+    ───────────────────────────────────── */
+    function nextQuestion() {
+      if (current === total - 1) { finishExam(); return; }
+      renderQuestion(current + 1);
+    }
+
+    function skipQuestion() {
+      skipped.add(current);
+      answers[current] = null;
+      document.getElementById('qCard').classList.remove('answered');
+      document.getElementById('qCard').classList.add('skipped');
+      updateMapCounter();
+      updateProgress();
+      if (current < total - 1) renderQuestion(current + 1);
+    }
+
+    /* ─────────────────────────────────────
+       ПРОГРЕСС
+    ───────────────────────────────────── */
+    function updateProgress() {
+      const answeredCount = answers.filter(a => a !== null).length;
+      const pct           = Math.round((answeredCount / total) * 100);
+      const remaining     = total - answeredCount;
+
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent  = `Прогресс ${pct}%`;
+      document.getElementById('progressLeft').textContent = `Осталось ${remaining} зад.`;
+    }
+
+    function updateMapCounter() {
+      const answeredCount = answers.filter(a => a !== null).length;
+      document.getElementById('mapCounter').textContent = `${answeredCount}/${total}`;
+    }
+
+    /* ─────────────────────────────────────
+       КАРТА ЗАДАНИЙ
+    ───────────────────────────────────── */
+    function openTaskMap() {
+      buildTaskMap();
+      document.getElementById('sheetOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeTaskMap() {
+      document.getElementById('sheetOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('sheetOverlay')) closeTaskMap();
+    }
+
+    function buildTaskMap() {
+      const answeredCount = answers.filter(a => a !== null).length;
+      const skippedCount  = skipped.size;
+
+      document.getElementById('statAnswered').textContent  = answeredCount;
+      document.getElementById('statSkipped').textContent   = skippedCount;
+      document.getElementById('statRemaining').textContent = total - answeredCount - skippedCount;
+
+      const part1Qs = questions.filter(q => q.part === 1);
+      const part2Qs = questions.filter(q => q.part === 2);
+
+      function buildGrid(container, qs) {
+        container.innerHTML = '';
+        qs.forEach(q => {
+          const idx = q.id - 1;
+          const cell = document.createElement('button');
+          cell.className = 'task-cell';
+          cell.textContent = q.id;
+          if (idx === current)           cell.classList.add('current');
+          else if (answers[idx] !== null) cell.classList.add('answered');
+          else if (skipped.has(idx))      cell.classList.add('skipped');
+          cell.onclick = () => { closeTaskMap(); renderQuestion(idx); };
+          container.appendChild(cell);
+        });
+      }
+
+      buildGrid(document.getElementById('taskGrid1'), part1Qs);
+      buildGrid(document.getElementById('taskGrid2'), part2Qs);
+
+      // Hide Part 2 section if no Part 2 questions
+      const hasPart2 = part2Qs.length > 0;
+      document.getElementById('sheetPart2Label').style.display = hasPart2 ? '' : 'none';
+      document.getElementById('taskGrid2').style.display       = hasPart2 ? '' : 'none';
+    }
+
+    /* ─────────────────────────────────────
+       ЗАВЕРШЕНИЕ
+    ───────────────────────────────────── */
+    function finishExam() {
+      clearInterval(timerID);
+      closeTaskMap();
+      const answeredCount = answers.filter(a => a !== null).length;
+      const p = new URLSearchParams({
+        exam:    EXAM,
+        subject: SUBJECT,
+        answered: answeredCount,
+        total,
+        time_spent: config.duration - timeLeft,
+      });
+      window.location.href = `results.html?${p.toString()}`;
+    }
+
+    /* ─────────────────────────────────────
+       EXIT MODAL
+    ───────────────────────────────────── */
+    function openExitModal() {
+      document.getElementById('exitModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeExitModal() {
+      document.getElementById('exitModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function confirmExit() {
+      clearInterval(timerID);
+      window.location.href = `onboarding.html`;
+    }
+
+    /* ─────────────────────────────────────
+       СТАРТ
+    ───────────────────────────────────── */
+    init();
+  </script>
+</body>
+</html>

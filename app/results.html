@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Результаты — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-hover:      #1C1F2A;
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-dim:    rgba(91,108,249,0.12);
+      --accent-border: rgba(91,108,249,0.28);
+      --gradient:      linear-gradient(135deg,#5B6CF9 0%,#8B5CF6 100%);
+      --success:       #34D399;
+      --success-dim:   rgba(52,211,153,0.10);
+      --success-border:rgba(52,211,153,0.28);
+      --warning:       #F59E0B;
+      --warning-dim:   rgba(245,158,11,0.10);
+      --warning-border:rgba(245,158,11,0.28);
+      --danger:        #F87171;
+      --danger-dim:    rgba(248,113,113,0.10);
+      --danger-border: rgba(248,113,113,0.28);
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+      --border:        rgba(255,255,255,0.07);
+      --border-soft:   rgba(255,255,255,0.04);
+      --radius-sm:8px; --radius-md:14px; --radius-lg:18px; --radius-xl:24px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{height:100%;}
+    body{
+      font-family:'Inter',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh;min-height:100dvh;
+      max-width:430px;margin:0 auto;
+      overflow-x:hidden;
+    }
+    button{font-family:inherit;cursor:pointer;border:none;background:none;}
+    a{color:inherit;text-decoration:none;}
+
+    /* ── GLOW ── */
+    .bg-glow{position:fixed;top:-80px;left:50%;transform:translateX(-50%);
+      width:400px;height:400px;
+      background:radial-gradient(circle,rgba(91,108,249,0.12) 0%,transparent 65%);
+      pointer-events:none;z-index:0;}
+
+    /* ═══════════════════════════════════════
+       LOADING SCREEN
+    ═══════════════════════════════════════ */
+    #loadingScreen{
+      position:fixed;inset:0;background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      z-index:999;gap:24px;padding:32px;
+      transition:opacity 0.5s, visibility 0.5s;
+    }
+    #loadingScreen.hidden{opacity:0;visibility:hidden;}
+    .loader-icon{
+      width:72px;height:72px;
+      border-radius:50%;
+      background:var(--accent-dim);
+      border:2px solid var(--accent-border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:32px;
+      animation:loader-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes loader-pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(91,108,249,0.4);}
+      50%{box-shadow:0 0 0 16px rgba(91,108,249,0);}
+    }
+    .loader-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:260px;}
+    .loader-step{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;
+      background:var(--bg-surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      font-size:13px;font-weight:600;
+      color:var(--text-muted);
+      transition:all 0.4s;
+    }
+    .loader-step.active{
+      border-color:var(--accent-border);
+      color:var(--text-accent);
+      background:var(--accent-dim);
+    }
+    .loader-step.done{
+      border-color:var(--success-border);
+      color:var(--success);
+      background:var(--success-dim);
+    }
+    .loader-step__dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--text-muted);flex-shrink:0;
+      transition:background 0.3s;
+    }
+    .loader-step.active .loader-step__dot{background:var(--accent);animation:pulse-dot 0.8s ease-in-out infinite;}
+    .loader-step.done  .loader-step__dot{background:var(--success);}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.7);}}
+
+    /* ═══════════════════════════════════════
+       PAGE LAYOUT
+    ═══════════════════════════════════════ */
+    .page{position:relative;z-index:1;padding:16px 20px 48px;}
+
+    /* ── TOPBAR ── */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:24px;
+    }
+    .topbar__back{
+      width:38px;height:38px;border-radius:50%;
+      background:var(--bg-surface);border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--text-soft);transition:all 0.18s;
+    }
+    .topbar__back:hover{background:var(--bg-elevated);color:var(--text);}
+    .topbar__chip{
+      font-size:11px;font-weight:700;letter-spacing:0.07em;
+      text-transform:uppercase;color:var(--text-accent);
+      background:var(--accent-dim);border:1px solid var(--accent-border);
+      padding:5px 12px;border-radius:20px;
+    }
+
+    /* ═══════════════════════════════════════
+       SCORE HERO
+    ═══════════════════════════════════════ */
+    .score-hero{
+      background:var(--bg-surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius-xl);
+      padding:28px 24px 24px;
+      margin-bottom:14px;
+      text-align:center;
+      position:relative;overflow:hidden;
+      animation:fadeUp 0.5s ease both;
+    }
+    .score-hero::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(91,108,249,0.5),transparent);
+    }
+    /* Stars burst */
+    .score-hero__burst{
+      font-size:28px;margin-bottom:8px;
+      animation:fadeUp 0.4s ease both;
+    }
+    .score-hero__label{
+      font-size:11px;font-weight:700;letter-spacing:0.1em;
+      text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;
+    }
+    .score-number{
+      font-family:'JetBrains Mono',monospace;
+      font-size:72px;font-weight:800;
+      line-height:1;letter-spacing:-0.04em;
+      background:var(--gradient);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      margin-bottom:6px;
+      animation:countUp 1s ease both 0.3s;
+    }
+    .score-number.good{background:linear-gradient(135deg,#34D399,#059669);-webkit-background-clip:text;background-clip:text;}
+    .score-number.warn{background:linear-gradient(135deg,#F59E0B,#D97706);-webkit-background-clip:text;background-clip:text;}
+    .score-number.low {background:linear-gradient(135deg,#F87171,#DC2626);-webkit-background-clip:text;background-clip:text;}
+
+    @keyframes countUp{from{opacity:0;transform:scale(0.8);}to{opacity:1;transform:scale(1);}}
+
+    .score-max{
+      font-size:14px;font-weight:600;color:var(--text-muted);
+      margin-bottom:16px;
+    }
+
+    /* Grade badge */
+    .grade-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 16px;border-radius:20px;
+      font-size:14px;font-weight:800;
+      margin-bottom:16px;
+    }
+    .grade-badge.five {background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);color:var(--success);}
+    .grade-badge.four {background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--text-accent);}
+    .grade-badge.three{background:var(--warning-dim);border:1px solid var(--warning-border);color:var(--warning);}
+    .grade-badge.two  {background:var(--danger-dim);border:1px solid var(--danger-border);color:var(--danger);}
+
+    /* Meta row */
+    .score-meta{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:8px;border-top:1px solid var(--border);padding-top:16px;
+    }
+    .meta-item{text-align:center;}
+    .meta-item__val{
+      font-family:'JetBrains Mono',monospace;
+      font-size:16px;font-weight:700;
+      color:var(--text);display:block;margin-bottom:3px;
+    }
+    .meta-item__key{
+      font-size:9px;font-weight:600;
+      text-transform:uppercase;letter-spacing:0.07em;
+      color:var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════
+       SECTION HEADER
+    ═══════════════════════════════════════ */
+    .section-hdr{
+      font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.09em;
+      color:var(--text-muted);
+      margin:20px 0 10px;
+    }
+
+    /* ═══════════════════════════════════════
+       PARTS BREAKDOWN
+    ═══════════════════════════════════════ */
+    .parts-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+    .part-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:16px 18px;
+      animation:fadeUp 0.5s ease 0.1s both;
+    }
+    .part-card__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .part-card__name{font-size:14px;font-weight:800;color:var(--text);}
+    .part-card__score{
+      font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+      padding:3px 10px;border-radius:6px;
+    }
+    .part-card__score.good{color:var(--success);background:var(--success-dim);border:1px solid var(--success-border);}
+    .part-card__score.warn{color:var(--warning);background:var(--warning-dim);border:1px solid var(--warning-border);}
+    .part-card__score.bad {color:var(--danger);background:var(--danger-dim);border:1px solid var(--danger-border);}
+    .part-card__bar{height:5px;background:var(--bg-elevated);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+    .part-card__fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
+    .part-card__fill.good{background:var(--success);}
+    .part-card__fill.warn{background:var(--warning);}
+    .part-card__fill.bad {background:var(--danger);}
+    .part-card__sub{font-size:11px;color:var(--text-muted);font-weight:500;}
+
+    /* AI check note */
+    .ai-check-note{
+      background:rgba(251,146,60,0.07);
+      border:1px solid rgba(251,146,60,0.2);
+      border-radius:var(--radius-sm);
+      padding:10px 12px;margin-top:8px;
+      display:flex;gap:8px;align-items:flex-start;
+    }
+    .ai-check-note__text{font-size:11px;line-height:1.6;color:var(--text-muted);}
+    .ai-check-note__text strong{color:#fb923c;}
+
+    /* ═══════════════════════════════════════
+       WEAK TOPICS
+    ═══════════════════════════════════════ */
+    .weak-list{display:flex;flex-direction:column;gap:8px;}
+    .weak-item{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-md);padding:14px 16px;
+      display:flex;align-items:center;gap:12px;
+      animation:fadeUp 0.5s ease both;
+    }
+    .weak-item__left{flex:1;min-width:0;}
+    .weak-item__name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .weak-item__tasks{font-size:11px;color:var(--text-muted);}
+    .weak-bar-wrap{width:80px;flex-shrink:0;}
+    .weak-bar{height:4px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;margin-bottom:3px;}
+    .weak-bar__fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);}
+    .weak-bar__fill.low {background:var(--danger);}
+    .weak-bar__fill.mid {background:var(--warning);}
+    .weak-bar__fill.ok  {background:var(--success);}
+    .weak-pct{
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+      text-align:right;
+    }
+    .weak-pct.low{color:var(--danger);}
+    .weak-pct.mid{color:var(--warning);}
+    .weak-pct.ok {color:var(--success);}
+    .weak-priority{
+      width:22px;height:22px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:800;
+    }
+    .weak-priority.high{background:var(--danger-dim);border:1px solid var(--danger-border);color:var(--danger);}
+    .weak-priority.mid {background:var(--warning-dim);border:1px solid var(--warning-border);color:var(--warning);}
+    .weak-priority.low {background:var(--success-dim);border:1px solid var(--success-border);color:var(--success);}
+
+    /* ═══════════════════════════════════════
+       PERSONAL ROUTE
+    ═══════════════════════════════════════ */
+    .route-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-xl);overflow:hidden;
+      animation:fadeUp 0.5s ease 0.15s both;
+    }
+    .route-header{
+      padding:16px 18px 14px;
+      border-bottom:1px solid var(--border-soft);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .route-header__left{}
+    .route-header__title{font-size:15px;font-weight:900;letter-spacing:-0.02em;margin-bottom:2px;}
+    .route-header__sub{font-size:11px;color:var(--text-muted);}
+    .route-header__badge{
+      font-size:10px;font-weight:700;letter-spacing:0.07em;
+      text-transform:uppercase;
+      background:var(--accent-dim);border:1px solid var(--accent-border);
+      color:var(--text-accent);padding:4px 10px;border-radius:6px;
+    }
+
+    .route-day{
+      padding:14px 18px;
+      display:flex;align-items:flex-start;gap:14px;
+      border-bottom:1px solid var(--border-soft);
+      transition:background 0.18s;cursor:pointer;
+    }
+    .route-day:last-child{border-bottom:none;}
+    .route-day:hover{background:var(--bg-elevated);}
+
+    .route-day__num{
+      width:32px;height:32px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+      transition:all 0.2s;
+    }
+    .route-day__num.urgent{background:var(--danger-dim);border:1.5px solid var(--danger-border);color:var(--danger);}
+    .route-day__num.important{background:var(--warning-dim);border:1.5px solid var(--warning-border);color:var(--warning);}
+    .route-day__num.normal{background:var(--accent-dim);border:1.5px solid var(--accent-border);color:var(--text-accent);}
+    .route-day__num.ok{background:var(--success-dim);border:1.5px solid var(--success-border);color:var(--success);}
+
+    .route-day__body{flex:1;min-width:0;}
+    .route-day__title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px;letter-spacing:-0.01em;}
+    .route-day__desc{font-size:11px;line-height:1.6;color:var(--text-soft);margin-bottom:6px;}
+    .route-day__tags{display:flex;gap:5px;flex-wrap:wrap;}
+    .tag{
+      font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+      padding:2px 7px;border-radius:4px;
+      background:var(--bg-elevated);border:1px solid var(--border);
+      color:var(--text-muted);
+    }
+    .route-day__time{
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+      color:var(--text-muted);flex-shrink:0;margin-top:2px;
+    }
+
+    /* ═══════════════════════════════════════
+       MOTIVATION BANNER
+    ═══════════════════════════════════════ */
+    .motivation-banner{
+      border-radius:var(--radius-lg);padding:18px;
+      margin-bottom:14px;
+      animation:fadeUp 0.5s ease 0.2s both;
+    }
+    .motivation-banner.good{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);}
+    .motivation-banner.warn{background:var(--warning-dim);border:1px solid var(--warning-border);}
+    .motivation-banner.low {background:var(--danger-dim);border:1px solid var(--danger-border);}
+    .motivation-banner__top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .motivation-banner__emoji{font-size:20px;}
+    .motivation-banner__title{font-size:15px;font-weight:900;letter-spacing:-0.02em;}
+    .motivation-banner.good .motivation-banner__title{color:var(--success);}
+    .motivation-banner.warn .motivation-banner__title{color:var(--warning);}
+    .motivation-banner.low  .motivation-banner__title{color:var(--danger);}
+    .motivation-banner__text{font-size:13px;line-height:1.65;color:var(--text-soft);}
+
+    /* ═══════════════════════════════════════
+       FORECAST CARD
+    ═══════════════════════════════════════ */
+    .forecast-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:16px 18px;
+      margin-bottom:14px;
+      animation:fadeUp 0.5s ease 0.12s both;
+    }
+    .forecast-card__title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;}
+    .forecast-row{
+      display:flex;align-items:center;gap:10px;margin-bottom:8px;
+    }
+    .forecast-row:last-child{margin-bottom:0;}
+    .forecast-row__label{font-size:12px;color:var(--text-soft);flex:1;}
+    .forecast-row__val{
+      font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+    }
+    .forecast-row__val.now{color:var(--text-muted);}
+    .forecast-row__val.target{color:var(--success);}
+    .forecast-arrow{
+      font-size:11px;color:var(--text-muted);
+    }
+    .forecast-row__bar{
+      height:3px;flex:2;background:var(--bg-elevated);border-radius:2px;overflow:hidden;
+    }
+    .forecast-row__bar-fill{
+      height:100%;border-radius:2px;
+      transition:width 1.2s ease;
+    }
+
+    /* ═══════════════════════════════════════
+       ACTION BUTTONS
+    ═══════════════════════════════════════ */
+    .actions{display:flex;flex-direction:column;gap:10px;margin-top:24px;}
+    .btn-primary{
+      width:100%;padding:17px;
+      background:var(--gradient);border-radius:var(--radius-lg);
+      font-size:15px;font-weight:800;color:#fff;
+      box-shadow:0 4px 24px rgba(91,108,249,0.4);
+      transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;gap:9px;
+    }
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(91,108,249,0.55);}
+    .btn-secondary{
+      width:100%;padding:15px;
+      background:var(--bg-surface);
+      border:1.5px solid var(--border);
+      border-radius:var(--radius-lg);
+      font-size:14px;font-weight:700;color:var(--text-soft);
+      transition:all 0.18s;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-secondary:hover{border-color:var(--accent-border);color:var(--text);}
+    .btn-ghost{
+      width:100%;padding:12px;
+      font-size:13px;font-weight:600;color:var(--text-muted);
+      transition:color 0.18s;
+    }
+    .btn-ghost:hover{color:var(--text-soft);}
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════ */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- ═══════════════════════════════════════
+     LOADING SCREEN
+═══════════════════════════════════════ -->
+<div id="loadingScreen">
+  <div class="loader-icon">🧠</div>
+  <div class="loader-steps">
+    <div class="loader-step active" id="step1">
+      <div class="loader-step__dot"></div>
+      Анализируем ответы
+    </div>
+    <div class="loader-step" id="step2">
+      <div class="loader-step__dot"></div>
+      Определяем слабые темы
+    </div>
+    <div class="loader-step" id="step3">
+      <div class="loader-step__dot"></div>
+      Строим личный маршрут
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN PAGE
+═══════════════════════════════════════ -->
+<div class="page" id="mainPage" style="display:none;">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="onboarding.html" class="topbar__back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+    <div class="topbar__chip" id="topChip">Результаты</div>
+  </div>
+
+  <!-- SCORE HERO -->
+  <div class="score-hero">
+    <div class="score-hero__burst" id="scoreBurst">🎯</div>
+    <div class="score-hero__label" id="scoreLabel">Итоговый результат</div>
+    <div class="score-number" id="scoreNumber">—</div>
+    <div class="score-max" id="scoreMax">из 32 баллов</div>
+    <div class="grade-badge" id="gradeBadge">—</div>
+    <div class="score-meta">
+      <div class="meta-item">
+        <span class="meta-item__val" id="metaCorrect">—</span>
+        <span class="meta-item__key">Верных</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-item__val" id="metaPercent">—</span>
+        <span class="meta-item__key">Результат</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-item__val" id="metaTime">—</span>
+        <span class="meta-item__key">Потрачено</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOTIVATION BANNER -->
+  <div class="motivation-banner" id="motivationBanner">
+    <div class="motivation-banner__top">
+      <span class="motivation-banner__emoji" id="motivEmoji">💪</span>
+      <span class="motivation-banner__title" id="motivTitle">Хорошее начало</span>
+    </div>
+    <div class="motivation-banner__text" id="motivText">Продолжай работать — каждая тема, которую ты разберёшь, добавит реальные баллы на экзамене.</div>
+  </div>
+
+  <!-- BREAKDOWN BY PARTS -->
+  <div class="section-hdr">Разбор по частям</div>
+  <div class="parts-grid" id="partsGrid"><!-- JS --></div>
+
+  <!-- PROGNOSIS -->
+  <div class="section-hdr">Прогноз роста</div>
+  <div class="forecast-card">
+    <div class="forecast-card__title">Если проработать маршрут ниже 📈</div>
+    <div id="forecastRows"><!-- JS --></div>
+  </div>
+
+  <!-- WEAK TOPICS -->
+  <div class="section-hdr">Слабые темы — приоритет работы</div>
+  <div class="weak-list" id="weakList"><!-- JS --></div>
+
+  <!-- PERSONAL ROUTE -->
+  <div class="section-hdr" style="margin-top:20px;">Личный маршрут подготовки</div>
+  <div class="route-card" id="routeCard">
+    <div class="route-header">
+      <div class="route-header__left">
+        <div class="route-header__title">Твой план</div>
+        <div class="route-header__sub" id="routeSubtitle">5 шагов до результата</div>
+      </div>
+      <div class="route-header__badge" id="routeBadge">—</div>
+    </div>
+    <div id="routeSteps"><!-- JS --></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-primary" onclick="goToErrors()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 2L8 14M8 2L5 5M8 2L11 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Разобрать ошибки
+    </button>
+    <button class="btn-secondary" onclick="goRetry()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <path d="M2 7.5A5.5 5.5 0 1 1 7.5 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M2 10.5V7.5H5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Пройти снова
+    </button>
+    <button class="btn-ghost" onclick="goHome()">На главную</button>
+  </div>
+
+</div>
+
+<script>
+  /* ─────────────────────────────────────
+     ПАРАМЕТРЫ
+  ───────────────────────────────────── */
+  const p       = new URLSearchParams(window.location.search);
+  const EXAM    = p.get('exam')       || 'oge';
+  const SUBJECT = p.get('subject')    || 'math';
+  const ANSWERED= parseInt(p.get('answered')   || '18');
+  const TOTAL   = parseInt(p.get('total')      || '26');
+  const T_SPENT = parseInt(p.get('time_spent') || '5400');
+
+  /* ─────────────────────────────────────
+     КОНФИГ
+  ───────────────────────────────────── */
+  const CFG = {
+    oge:{ math:{   maxScore:32, p1tasks:19, p2tasks:7,  p1max:19, p2max:13,
+                   grade:{five:22,four:15,three:8},
+                   topics:['Арифметика и числа','Алгебраические выражения','Уравнения','Неравенства','Функции и графики','Геометрия — треугольники','Геометрия — четырёхугольники','Вероятность','Прогрессии','Текстовые задачи'],
+                   taskNums:{'Арифметика и числа':[1,2],'Алгебраические выражения':[10,12,18],'Уравнения':[5,16],'Неравенства':[6],'Функции и графики':[8],'Геометрия — треугольники':[7,22],'Геометрия — четырёхугольники':[8,25],'Вероятность':[9],'Прогрессии':[19,24],'Текстовые задачи':[11,15,21]},
+                 },
+           russian:{maxScore:33, p1tasks:7,  p2tasks:2,  p1max:7, p2max:26,
+                   grade:{five:24,four:15,three:9},
+                   topics:['Изложение','Лексика и фразеология','Синтаксис','Орфография','Пунктуация','Языковые нормы','Сочинение'],
+                   taskNums:{'Изложение':[1],'Лексика и фразеология':[2,3],'Синтаксис':[4,5],'Орфография':[6],'Пунктуация':[7],'Языковые нормы':[3],'Сочинение':[4]},
+                 },
+         },
+    ege:{ math:{   maxScore:100,p1tasks:12, p2tasks:7,  p1max:32, p2max:68,
+                   grade:{five:74,four:56,three:39},
+                   topics:['Числа и корни','Алгебра','Уравнения и системы','Неравенства','Тригонометрия','Функции и производная','Геометрия стереометрия','Вероятность и статистика','Прогрессии','Параметры'],
+                   taskNums:{'Числа и корни':[1,2],'Алгебра':[3,4],'Уравнения и системы':[5,20],'Неравенства':[15],'Тригонометрия':[6,16],'Функции и производная':[7,17],'Геометрия стереометрия':[8,9],'Вероятность и статистика':[10,18],'Прогрессии':[14],'Параметры':[19]},
+                 },
+           russian:{maxScore:58, p1tasks:26, p2tasks:1,  p1max:39, p2max:19,
+                   grade:{five:73,four:58,three:45},
+                   topics:['Текст и смысловые части','Языковые нормы','Орфография','Пунктуация','Лексика','Грамматика','Сочинение-рассуждение'],
+                   taskNums:{'Текст и смысловые части':[1,2,3],'Языковые нормы':[4,5],'Орфография':[9,10,11,12],'Пунктуация':[16,17,18,19],'Лексика':[6,7,8],'Грамматика':[20,21,22,23],'Сочинение-рассуждение':[27]},
+                 },
+         },
+  };
+
+  const cfg     = CFG[EXAM][SUBJECT];
+  const subjectNames = {math:'Математика',russian:'Русский язык'};
+  const examLabels   = {oge:'ОГЭ',ege:'ЕГЭ'};
+
+  /* ─────────────────────────────────────
+     ВЫЧИСЛЕНИЕ РЕЗУЛЬТАТА
+  ───────────────────────────────────── */
+  // Симулируем реалистичные результаты на основе answered/total
+  const ratio    = ANSWERED / TOTAL;
+  const p1Answered = Math.min(cfg.p1tasks, ANSWERED);
+  const p2Answered = Math.max(0, ANSWERED - p1Answered);
+
+  // ~75% answered Part 1 correct, ~45% Part 2 correct
+  const p1Correct  = Math.round(p1Answered * (0.6 + ratio * 0.25));
+  const p2Correct  = Math.round(p2Answered * (0.3 + ratio * 0.2));
+  const totalScore = Math.min(cfg.maxScore, p1Correct + p2Correct * Math.ceil(cfg.p2max / Math.max(1, cfg.p2tasks)));
+  const pct        = Math.round((totalScore / cfg.maxScore) * 100);
+
+  // Grade
+  function getGrade(score) {
+    if (score >= cfg.grade.five)  return 5;
+    if (score >= cfg.grade.four)  return 4;
+    if (score >= cfg.grade.three) return 3;
+    return 2;
+  }
+  const grade = getGrade(totalScore);
+
+  // Topic performance (симуляция)
+  const seed = ANSWERED * 7 + T_SPENT % 13; // pseudo-random but stable
+  const topicScores = cfg.topics.map((t, i) => {
+    const base = ratio * 0.8;
+    const noise = ((seed + i * 17) % 40 - 20) / 100;
+    return Math.max(0, Math.min(1, base + noise));
+  });
+  const sortedTopics = cfg.topics
+    .map((t, i) => ({ name: t, score: topicScores[i], tasks: cfg.taskNums[t] || [] }))
+    .sort((a,b) => a.score - b.score);
+
+  // Forecast
+  const forecastScore = Math.min(cfg.maxScore, Math.round(totalScore * 1.35 + 3));
+  const forecastGrade = getGrade(forecastScore);
+
+  // Time formatting
+  function fmtTime(secs) {
+    const h = Math.floor(secs/3600);
+    const m = Math.floor((secs%3600)/60);
+    if (h > 0) return `${h}ч ${m}мин`;
+    return `${m} мин`;
+  }
+
+  /* ─────────────────────────────────────
+     LOADING SEQUENCE
+  ───────────────────────────────────── */
+  function runLoader() {
+    const steps = [
+      { el: document.getElementById('step1'), delay: 0 },
+      { el: document.getElementById('step2'), delay: 800 },
+      { el: document.getElementById('step3'), delay: 1600 },
+    ];
+
+    steps.forEach(({el, delay}, i) => {
+      setTimeout(() => {
+        steps.slice(0,i).forEach(s => {
+          s.el.classList.remove('active');
+          s.el.classList.add('done');
+          s.el.innerHTML = s.el.innerHTML.replace(/<div[^>]*><\/div>/, '') + '';
+          const dot = s.el.querySelector('.loader-step__dot');
+          if (dot) dot.style.background = 'var(--success)';
+        });
+        el.classList.add('active');
+      }, delay);
+    });
+
+    setTimeout(() => {
+      steps.forEach(s => { s.el.classList.remove('active'); s.el.classList.add('done'); });
+      setTimeout(showResults, 400);
+    }, 2600);
+  }
+
+  function showResults() {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('mainPage').style.display = 'block';
+    buildResults();
+    setTimeout(animateBars, 300);
+  }
+
+  /* ─────────────────────────────────────
+     ПОСТРОЕНИЕ РЕЗУЛЬТАТОВ
+  ───────────────────────────────────── */
+  function buildResults() {
+    const subj = subjectNames[SUBJECT];
+    const exam = examLabels[EXAM];
+    document.getElementById('topChip').textContent = `${exam} • ${subj}`;
+    document.title = `Результаты — ${exam} ${subj}`;
+
+    // Score hero
+    document.getElementById('scoreNumber').textContent = totalScore;
+    document.getElementById('scoreMax').textContent    = `из ${cfg.maxScore} баллов`;
+
+    const scoreEl = document.getElementById('scoreNumber');
+    if      (grade === 5) { scoreEl.classList.add('good'); }
+    else if (grade === 4) { /* default gradient */ }
+    else if (grade === 3) { scoreEl.classList.add('warn'); }
+    else                  { scoreEl.classList.add('low');  }
+
+    // Grade badge
+    const gradeBadge = document.getElementById('gradeBadge');
+    const gradeLabels = {
+      5: { txt: EXAM === 'ege' ? `${pct}% — Отлично` : 'Оценка «5»',  cls: 'five',  emoji: '🏆' },
+      4: { txt: EXAM === 'ege' ? `${pct}% — Хорошо`  : 'Оценка «4»',  cls: 'four',  emoji: '⭐' },
+      3: { txt: EXAM === 'ege' ? `${pct}% — Удовлетворительно` : 'Оценка «3»', cls: 'three', emoji: '📊' },
+      2: { txt: EXAM === 'ege' ? `${pct}% — Не зачёт` : 'Оценка «2»', cls: 'two',   emoji: '💡' },
+    }[grade];
+    gradeBadge.textContent = `${gradeLabels.emoji} ${gradeLabels.txt}`;
+    gradeBadge.className = `grade-badge ${gradeLabels.cls}`;
+
+    // Burst emoji
+    const bursts = { 5:'🎉', 4:'⭐', 3:'📈', 2:'💪' };
+    document.getElementById('scoreBurst').textContent = bursts[grade];
+
+    // Meta
+    document.getElementById('metaCorrect').textContent = `${p1Correct + p2Correct}/${TOTAL}`;
+    document.getElementById('metaPercent').textContent  = `${pct}%`;
+    document.getElementById('metaTime').textContent     = fmtTime(T_SPENT);
+
+    // Motivation
+    const motivs = {
+      5: { cls:'good', emoji:'🎉', title:'Отличный результат!', text:'Ты справился на «отлично». Это требует серьёзной подготовки — ты её показал. Перед экзаменом повтори темы, где ещё есть небольшие пробелы.' },
+      4: { cls:'good', emoji:'💪', title:'Очень хороший результат', text:'Ещё немного работы — и ты на «пятёрке». Сосредоточься на слабых темах из маршрута ниже и пройди ещё 2-3 симулятора.' },
+      3: { cls:'warn', emoji:'📊', title:'Есть над чем поработать', text:'Базу ты знаешь, но для уверенного результата нужно закрыть пробелы по ключевым темам. Маршрут ниже покажет, с чего начать.' },
+      2: { cls:'low',  emoji:'🚀', title:'Стартуем с нуля — это нормально', text:'Главное — ты прошёл полный экзамен и знаешь, где точки роста. Начни с первых тем маршрута, занимайся каждый день, и результат придёт.' },
+    }[grade];
+    const mb = document.getElementById('motivationBanner');
+    mb.className = `motivation-banner ${motivs.cls}`;
+    document.getElementById('motivEmoji').textContent  = motivs.emoji;
+    document.getElementById('motivTitle').textContent  = motivs.title;
+    document.getElementById('motivText').textContent   = motivs.text;
+
+    // Parts breakdown
+    buildParts();
+    // Forecast
+    buildForecast();
+    // Weak topics
+    buildWeakTopics();
+    // Route
+    buildRoute();
+  }
+
+  function buildParts() {
+    const p1pct = Math.round((p1Correct / cfg.p1tasks) * 100);
+    const p2pct = p2Answered > 0 ? Math.round((p2Correct / cfg.p2tasks) * 100) : 0;
+
+    function lvl(pct) {
+      if (pct >= 70) return 'good';
+      if (pct >= 40) return 'warn';
+      return 'bad';
+    }
+
+    const grid = document.getElementById('partsGrid');
+    grid.innerHTML = `
+      <div class="part-card">
+        <div class="part-card__top">
+          <div class="part-card__name">Часть 1 — Краткий ответ</div>
+          <div class="part-card__score ${lvl(p1pct)}">${p1Correct}/${cfg.p1tasks}</div>
+        </div>
+        <div class="part-card__bar">
+          <div class="part-card__fill ${lvl(p1pct)}" data-w="${p1pct}" style="width:0%"></div>
+        </div>
+        <div class="part-card__sub">${p1pct}% верных ответов · ${cfg.p1max} макс. баллов</div>
+      </div>
+      <div class="part-card">
+        <div class="part-card__top">
+          <div class="part-card__name">Часть 2 — Развёрнутый ответ</div>
+          <div class="part-card__score ${lvl(p2pct)}">${p2Correct}/${cfg.p2tasks} ✓</div>
+        </div>
+        <div class="part-card__bar">
+          <div class="part-card__fill ${lvl(p2pct)}" data-w="${p2pct}" style="width:0%"></div>
+        </div>
+        <div class="part-card__sub">${p2pct}% засчитанных · ${cfg.p2max} макс. баллов</div>
+        <div class="ai-check-note">
+          <span style="font-size:14px">🤖</span>
+          <span class="ai-check-note__text"><strong>ИИ проверяет развёрнутые ответы</strong> по критериям ФИПИ. Детальная обратная связь — в разборе ошибок.</span>
+        </div>
+      </div>`;
+  }
+
+  function buildForecast() {
+    const nowPct  = pct;
+    const targPct = Math.min(100, Math.round(pct * 1.3 + 5));
+    const nowGrade  = grade;
+    const targGrade = getGrade(forecastScore);
+
+    const rows = [
+      { label:'Сейчас',              val:totalScore, max:cfg.maxScore, color:'#4A5568', w:nowPct },
+      { label:'После маршрута (~2 нед)',val:forecastScore, max:cfg.maxScore, color:'#34D399', w:targPct },
+    ];
+
+    document.getElementById('forecastRows').innerHTML = rows.map(r => `
+      <div class="forecast-row">
+        <div class="forecast-row__label">${r.label}</div>
+        <div class="forecast-row__bar">
+          <div class="forecast-row__bar-fill" data-w="${r.w}" style="width:0%;background:${r.color}"></div>
+        </div>
+        <div class="forecast-row__val" style="color:${r.color}">${r.val}</div>
+      </div>`).join('');
+  }
+
+  function buildWeakTopics() {
+    const weak = sortedTopics.slice(0, 5);
+    const list = document.getElementById('weakList');
+    list.innerHTML = weak.map((t, i) => {
+      const pct  = Math.round(t.score * 100);
+      const cls  = pct < 40 ? 'low' : pct < 65 ? 'mid' : 'ok';
+      const pri  = i < 2 ? 'high' : i < 4 ? 'mid' : 'low';
+      const priN = i < 2 ? '!' : i < 4 ? '~' : '✓';
+      const tasks = t.tasks.length ? `Задания: ${t.tasks.join(', ')}` : '';
+      return `
+        <div class="weak-item" style="animation-delay:${i*0.06}s">
+          <div class="weak-priority ${pri}">${priN}</div>
+          <div class="weak-item__left">
+            <div class="weak-item__name">${t.name}</div>
+            <div class="weak-item__tasks">${tasks}</div>
+          </div>
+          <div class="weak-bar-wrap">
+            <div class="weak-bar">
+              <div class="weak-bar__fill ${cls}" data-w="${pct}" style="width:0%"></div>
+            </div>
+            <div class="weak-pct ${cls}">${pct}%</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function buildRoute() {
+    const weak  = sortedTopics.slice(0, 5);
+    const days  = [
+      { level:'urgent',   title: weak[0]?.name || 'Базовые темы',
+        desc: 'Разбери теорию и реши 10 задач. Это твой главный пробел — закрой его первым.',
+        tags:['Теория','Практика'], time:'~45 мин' },
+      { level:'urgent',   title: weak[1]?.name || 'Второй приоритет',
+        desc: 'Просмотри разбор типичных заданий. Обязательно разбери каждую ошибку с объяснением.',
+        tags:['Разбор ошибок','Задачи'], time:'~40 мин' },
+      { level:'important',title: weak[2]?.name || 'Средний приоритет',
+        desc: 'Проработай тему по теории, затем реши тематический тест без ограничения времени.',
+        tags:['Теория','Тест'], time:'~35 мин' },
+      { level:'normal',   title: 'Тематический симулятор: Часть 1',
+        desc: 'Пройди симулятор только первой части — без ограничения времени. Цель: 85%+ верных.',
+        tags:['Симулятор','Часть 1'], time:'~50 мин' },
+      { level:'normal',   title: `Полный симулятор: ${examLabels[EXAM]} ${subjectNames[SUBJECT]}`,
+        desc: 'Финальный замер. Сравни с этим результатом — ты обязательно увидишь рост.',
+        tags:['Полный тест','Замер'], time:'3-4 часа' },
+    ];
+
+    const totalMins = days.slice(0,-1).length * 40;
+    document.getElementById('routeSubtitle').textContent = `${days.length} шагов · ~${totalMins + 240} мин`;
+    document.getElementById('routeBadge').textContent    = `${days.length} шагов`;
+
+    const levelColors = { urgent:'urgent', important:'important', normal:'normal', ok:'ok' };
+
+    document.getElementById('routeSteps').innerHTML = days.map((d, i) => `
+      <div class="route-day" onclick="handleRouteClick(${i})">
+        <div class="route-day__num ${levelColors[d.level]}">0${i+1}</div>
+        <div class="route-day__body">
+          <div class="route-day__title">${d.title}</div>
+          <div class="route-day__desc">${d.desc}</div>
+          <div class="route-day__tags">
+            ${d.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="route-day__time">${d.time}</div>
+      </div>`).join('');
+  }
+
+  /* ─────────────────────────────────────
+     АНИМАЦИЯ БАРОВ
+  ───────────────────────────────────── */
+  function animateBars() {
+    document.querySelectorAll('[data-w]').forEach((el, i) => {
+      setTimeout(() => {
+        el.style.width = el.dataset.w + '%';
+      }, i * 80);
+    });
+  }
+
+  /* ─────────────────────────────────────
+     НАВИГАЦИЯ
+  ───────────────────────────────────── */
+  function goToErrors() {
+    const q = new URLSearchParams({ exam: EXAM, subject: SUBJECT });
+    window.location.href = `error-detail.html?${q}`;
+  }
+  function goRetry() {
+    const q = new URLSearchParams({ exam: EXAM, subject: SUBJECT });
+    window.location.href = `onboarding.html?${q}`;
+  }
+  function goHome() {
+    window.location.href = 'today.html';
+  }
+  function handleRouteClick(i) {
+    if (i === 4) { goRetry(); return; }
+    goToErrors();
+  }
+
+  /* ─────────────────────────────────────
+     СТАРТ
+  ───────────────────────────────────── */
+  runLoader();
+</script>
+</body>
+</html>

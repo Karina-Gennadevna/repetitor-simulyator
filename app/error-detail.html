@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Разбор задачи — Репетитор ОГЭ/ЕГЭ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:            #09090F;
+      --bg-surface:    #10121A;
+      --bg-elevated:   #161922;
+      --bg-hover:      #1C1F2A;
+      --accent:        #5B6CF9;
+      --accent-2:      #8B5CF6;
+      --accent-dim:    rgba(91,108,249,0.12);
+      --accent-border: rgba(91,108,249,0.28);
+      --gradient:      linear-gradient(135deg,#5B6CF9 0%,#8B5CF6 100%);
+      --success:       #34D399;
+      --success-dim:   rgba(52,211,153,0.10);
+      --success-border:rgba(52,211,153,0.28);
+      --warning:       #F59E0B;
+      --warning-dim:   rgba(245,158,11,0.10);
+      --warning-border:rgba(245,158,11,0.28);
+      --danger:        #F87171;
+      --danger-dim:    rgba(248,113,113,0.10);
+      --danger-border: rgba(248,113,113,0.28);
+      --orange:        #fb923c;
+      --orange-dim:    rgba(251,146,60,0.10);
+      --orange-border: rgba(251,146,60,0.25);
+      --text:          #F1F5F9;
+      --text-soft:     #94A3B8;
+      --text-muted:    #4A5568;
+      --text-accent:   #818CF8;
+      --border:        rgba(255,255,255,0.07);
+      --border-soft:   rgba(255,255,255,0.04);
+      --radius-sm:8px; --radius-md:14px; --radius-lg:18px; --radius-xl:24px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{height:100%;}
+    body{
+      font-family:'Inter',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh;min-height:100dvh;
+      max-width:430px;margin:0 auto;
+      overflow-x:hidden;
+    }
+    button{font-family:inherit;cursor:pointer;border:none;background:none;}
+
+    .bg-glow{position:fixed;top:-60px;left:50%;transform:translateX(-50%);
+      width:380px;height:300px;
+      background:radial-gradient(circle,rgba(248,113,113,0.07) 0%,rgba(91,108,249,0.07) 60%,transparent 80%);
+      pointer-events:none;z-index:0;}
+
+    .page{position:relative;z-index:1;padding:16px 20px 48px;}
+
+    /* ── TOPBAR ── */
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .topbar__back{
+      width:38px;height:38px;border-radius:50%;
+      background:var(--bg-surface);border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--text-soft);transition:all 0.18s;
+    }
+    .topbar__back:hover{background:var(--bg-elevated);color:var(--text);}
+    .topbar__meta{display:flex;align-items:center;gap:8px;}
+    .topbar__chip{
+      font-size:11px;font-weight:700;letter-spacing:0.07em;
+      text-transform:uppercase;color:var(--text-accent);
+      background:var(--accent-dim);border:1px solid var(--accent-border);
+      padding:5px 12px;border-radius:20px;
+    }
+    .topbar__nav{
+      display:flex;gap:4px;
+    }
+    .topbar__arrow{
+      width:30px;height:30px;border-radius:50%;
+      background:var(--bg-surface);border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--text-muted);transition:all 0.18s;
+    }
+    .topbar__arrow:hover{border-color:var(--accent-border);color:var(--text-accent);}
+    .topbar__arrow:disabled{opacity:0.3;pointer-events:none;}
+
+    /* ── SECTION LABEL ── */
+    .sec-label{
+      display:flex;align-items:center;gap:8px;
+      font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.09em;
+      color:var(--text-muted);margin:0 0 10px;
+    }
+    .sec-label__icon{
+      width:20px;height:20px;border-radius:5px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;flex-shrink:0;
+    }
+
+    /* ═══════════════════════════════════════
+       TASK HEADER
+    ═══════════════════════════════════════ */
+    .task-header{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-xl);padding:20px;
+      margin-bottom:12px;
+      animation:fadeUp 0.4s ease both;
+    }
+    .task-header__top{
+      display:flex;align-items:center;gap:10px;margin-bottom:14px;
+    }
+    .task-num{
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+      color:var(--text-accent);background:var(--accent-dim);
+      border:1px solid var(--accent-border);
+      padding:3px 9px;border-radius:5px;flex-shrink:0;
+    }
+    .task-topic{font-size:12px;font-weight:600;color:var(--text-muted);}
+    .task-wrong-badge{
+      margin-left:auto;display:flex;align-items:center;gap:4px;
+      font-size:10px;font-weight:700;letter-spacing:0.05em;
+      color:var(--danger);background:var(--danger-dim);
+      border:1px solid var(--danger-border);
+      padding:3px 9px;border-radius:5px;flex-shrink:0;
+    }
+    .task-text{
+      font-size:16px;font-weight:600;line-height:1.65;
+      color:var(--text);margin-bottom:14px;
+      letter-spacing:-0.01em;
+    }
+    .task-formula{
+      font-family:'JetBrains Mono',monospace;font-size:14px;
+      color:var(--text-accent);background:var(--accent-dim);
+      border:1px solid var(--accent-border);
+      padding:10px 14px;border-radius:var(--radius-sm);
+      display:block;margin:8px 0;letter-spacing:0.02em;
+    }
+
+    /* ── Answer comparison ── */
+    .answer-compare{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    }
+    .ans-box{
+      border-radius:var(--radius-md);padding:12px 14px;text-align:center;
+    }
+    .ans-box__label{
+      font-size:9px;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.08em;margin-bottom:6px;display:block;
+    }
+    .ans-box__val{
+      font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;
+      display:block;line-height:1;
+    }
+    .ans-box.wrong{
+      background:var(--danger-dim);border:1.5px solid var(--danger-border);
+    }
+    .ans-box.wrong .ans-box__label{color:var(--danger);}
+    .ans-box.wrong .ans-box__val{color:var(--danger);}
+    .ans-box.correct{
+      background:var(--success-dim);border:1.5px solid var(--success-border);
+    }
+    .ans-box.correct .ans-box__label{color:var(--success);}
+    .ans-box.correct .ans-box__val{color:var(--success);}
+
+    /* ═══════════════════════════════════════
+       MY MISTAKE BLOCK
+    ═══════════════════════════════════════ */
+    .mistake-card{
+      background:var(--bg-surface);border:1.5px solid var(--danger-border);
+      border-radius:var(--radius-xl);padding:20px;
+      margin-bottom:12px;position:relative;overflow:hidden;
+      animation:fadeUp 0.4s ease 0.07s both;
+    }
+    .mistake-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(248,113,113,0.5),transparent);
+    }
+    .mistake-text{
+      font-size:14px;line-height:1.7;color:var(--text-soft);
+    }
+    .mistake-highlight{
+      display:inline-block;
+      background:var(--danger-dim);border:1px solid var(--danger-border);
+      border-radius:4px;padding:1px 6px;
+      color:var(--danger);font-weight:700;
+    }
+    .mistake-step{
+      display:flex;align-items:flex-start;gap:10px;
+      background:var(--bg-elevated);border:1px solid var(--danger-border);
+      border-radius:var(--radius-md);
+      padding:12px 14px;margin-top:12px;
+    }
+    .mistake-step__icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+    .mistake-step__text{font-size:13px;line-height:1.65;color:var(--text-soft);}
+    .mistake-step__text strong{color:var(--danger);font-weight:700;}
+
+    /* ═══════════════════════════════════════
+       CORRECT SOLUTION
+    ═══════════════════════════════════════ */
+    .solution-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-xl);overflow:hidden;
+      margin-bottom:12px;
+      animation:fadeUp 0.4s ease 0.12s both;
+    }
+    .solution-card::before{
+      content:'';display:block;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(52,211,153,0.4),transparent);
+    }
+
+    .solution-step{
+      padding:16px 20px;
+      border-bottom:1px solid var(--border-soft);
+      display:flex;align-items:flex-start;gap:14px;
+    }
+    .solution-step:last-child{border-bottom:none;}
+
+    .step-num{
+      width:28px;height:28px;border-radius:50%;flex-shrink:0;
+      background:var(--gradient);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+      color:#fff;margin-top:1px;
+    }
+    .step-body{flex:1;}
+    .step-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;}
+    .step-text{font-size:13px;line-height:1.7;color:var(--text-soft);}
+    .step-formula{
+      font-family:'JetBrains Mono',monospace;font-size:13px;
+      color:var(--success);background:var(--success-dim);
+      border:1px solid var(--success-border);
+      padding:8px 12px;border-radius:var(--radius-sm);
+      display:block;margin:8px 0;letter-spacing:0.03em;
+    }
+    .step-formula.neutral{
+      color:var(--text-accent);background:var(--accent-dim);border-color:var(--accent-border);
+    }
+    .step-result{
+      display:inline-flex;align-items:center;gap:6px;
+      font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;
+      color:var(--success);background:var(--success-dim);
+      border:1.5px solid var(--success-border);
+      padding:6px 12px;border-radius:var(--radius-sm);
+      margin-top:6px;
+    }
+
+    /* ═══════════════════════════════════════
+       WHERE WRONG
+    ═══════════════════════════════════════ */
+    .where-card{
+      background:var(--orange-dim);border:1.5px solid var(--orange-border);
+      border-radius:var(--radius-xl);padding:20px;
+      margin-bottom:12px;
+      animation:fadeUp 0.4s ease 0.16s both;
+    }
+    .compare-row{
+      display:flex;align-items:center;gap:0;
+      background:var(--bg-elevated);border:1px solid var(--border);
+      border-radius:var(--radius-md);overflow:hidden;
+      margin-top:12px;
+    }
+    .compare-col{flex:1;padding:12px 14px;}
+    .compare-col + .compare-col{border-left:1px solid var(--border);}
+    .compare-col__label{
+      font-size:9px;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.08em;margin-bottom:6px;display:block;
+    }
+    .compare-col.bad  .compare-col__label{color:var(--danger);}
+    .compare-col.good .compare-col__label{color:var(--success);}
+    .compare-col__line{
+      font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+      line-height:1.6;
+    }
+    .compare-col.bad  .compare-col__line{color:var(--danger);}
+    .compare-col.good .compare-col__line{color:var(--success);}
+    .error-arrow{
+      font-size:18px;color:var(--text-muted);
+      padding:0 2px;flex-shrink:0;align-self:center;
+    }
+
+    .tip-list{margin-top:12px;display:flex;flex-direction:column;gap:7px;}
+    .tip-item{
+      display:flex;align-items:flex-start;gap:10px;
+      font-size:13px;line-height:1.65;color:var(--text-soft);
+    }
+    .tip-item__bullet{
+      width:18px;height:18px;border-radius:50%;flex-shrink:0;
+      background:var(--orange-dim);border:1px solid var(--orange-border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:9px;font-weight:800;color:var(--orange);margin-top:2px;
+    }
+
+    /* ═══════════════════════════════════════
+       HOW TO SOLVE — METHOD
+    ═══════════════════════════════════════ */
+    .method-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-xl);overflow:hidden;
+      margin-bottom:12px;
+      animation:fadeUp 0.4s ease 0.2s both;
+    }
+    .method-header{
+      padding:16px 20px;
+      background:var(--accent-dim);border-bottom:1px solid var(--accent-border);
+      display:flex;align-items:center;gap:10px;
+    }
+    .method-header__icon{font-size:18px;}
+    .method-header__title{font-size:14px;font-weight:900;color:var(--text-accent);letter-spacing:-0.01em;}
+    .method-header__sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+
+    .method-algo{padding:16px 20px;display:flex;flex-direction:column;gap:0;}
+    .algo-step{
+      display:flex;align-items:flex-start;gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid var(--border-soft);
+    }
+    .algo-step:last-child{border-bottom:none;padding-bottom:0;}
+    .algo-step__num{
+      width:24px;height:24px;border-radius:6px;flex-shrink:0;
+      background:var(--accent-dim);border:1px solid var(--accent-border);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+      color:var(--text-accent);margin-top:1px;
+    }
+    .algo-step__text{font-size:13px;line-height:1.65;color:var(--text-soft);}
+    .algo-step__text strong{color:var(--text);font-weight:700;}
+
+    .method-rule{
+      padding:0 20px 16px;
+    }
+    .rule-box{
+      background:var(--bg-elevated);border:1px solid var(--accent-border);
+      border-left:3px solid var(--accent);
+      border-radius:var(--radius-sm);
+      padding:12px 14px;
+    }
+    .rule-box__label{
+      font-size:9px;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.09em;color:var(--text-accent);margin-bottom:5px;
+    }
+    .rule-box__text{
+      font-family:'JetBrains Mono',monospace;font-size:13px;
+      color:var(--text);font-weight:600;line-height:1.5;
+    }
+
+    /* ═══════════════════════════════════════
+       SIMILAR TASK
+    ═══════════════════════════════════════ */
+    .similar-card{
+      background:var(--bg-surface);border:1px solid var(--border);
+      border-radius:var(--radius-xl);overflow:hidden;
+      margin-bottom:24px;
+      animation:fadeUp 0.4s ease 0.24s both;
+    }
+    .similar-header{
+      padding:14px 20px;
+      border-bottom:1px solid var(--border-soft);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .similar-header__title{font-size:14px;font-weight:900;color:var(--text);letter-spacing:-0.01em;}
+    .similar-header__badge{
+      font-size:9px;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.08em;color:var(--text-muted);
+      background:var(--bg-elevated);border:1px solid var(--border);
+      padding:3px 9px;border-radius:5px;
+    }
+
+    .similar-body{padding:16px 20px;}
+    .similar-question{
+      font-size:15px;font-weight:600;line-height:1.65;
+      color:var(--text);margin-bottom:14px;letter-spacing:-0.01em;
+    }
+    .similar-formula{
+      font-family:'JetBrains Mono',monospace;font-size:14px;
+      color:var(--text-accent);background:var(--accent-dim);
+      border:1px solid var(--accent-border);
+      padding:10px 14px;border-radius:var(--radius-sm);
+      display:block;margin:8px 0 14px;
+    }
+
+    /* Answer input */
+    .similar-input-wrap{position:relative;margin-bottom:8px;}
+    .similar-input{
+      width:100%;background:var(--bg-elevated);
+      border:1.5px solid var(--border);border-radius:var(--radius-md);
+      padding:14px 48px 14px 16px;
+      font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:700;
+      color:var(--text);outline:none;transition:all 0.2s;
+      caret-color:var(--accent);
+    }
+    .similar-input::placeholder{font-size:13px;font-family:'Inter',sans-serif;font-weight:500;color:var(--text-muted);}
+    .similar-input:focus{border-color:var(--accent-border);background:var(--bg-hover);box-shadow:0 0 0 3px var(--accent-dim);}
+    .similar-input.correct-ans{border-color:var(--success-border);background:var(--success-dim);color:var(--success);}
+    .similar-input.wrong-ans  {border-color:var(--danger-border); background:var(--danger-dim); color:var(--danger);}
+
+    .input-icon{
+      position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      width:28px;height:28px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;
+    }
+    .input-icon.success-i{background:var(--success-dim);border:1px solid var(--success-border);}
+    .input-icon.danger-i {background:var(--danger-dim); border:1px solid var(--danger-border);}
+
+    .similar-hint{font-size:11px;color:var(--text-muted);margin-bottom:12px;}
+
+    /* Check / reveal buttons */
+    .btn-check{
+      width:100%;padding:15px;border-radius:var(--radius-md);
+      font-size:14px;font-weight:800;color:#fff;
+      background:var(--gradient);
+      box-shadow:0 3px 16px rgba(91,108,249,0.35);
+      transition:all 0.2s;margin-bottom:8px;
+    }
+    .btn-check:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,108,249,0.5);}
+    .btn-check:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
+    .btn-reveal{
+      width:100%;padding:11px;
+      font-size:12px;font-weight:600;color:var(--text-muted);
+      border:1px solid var(--border);border-radius:var(--radius-md);
+      background:var(--bg-elevated);transition:all 0.18s;
+    }
+    .btn-reveal:hover{color:var(--text-soft);border-color:var(--accent-border);}
+
+    /* Result feedback */
+    .check-result{
+      border-radius:var(--radius-md);padding:14px 16px;
+      margin-top:10px;display:none;
+      animation:fadeUp 0.3s ease both;
+    }
+    .check-result.correct-res{
+      background:var(--success-dim);border:1px solid var(--success-border);display:flex;
+    }
+    .check-result.wrong-res{
+      background:var(--danger-dim);border:1px solid var(--danger-border);display:flex;
+    }
+    .check-result__icon{font-size:18px;flex-shrink:0;margin-right:10px;margin-top:1px;}
+    .check-result__text{font-size:13px;line-height:1.6;}
+    .check-result.correct-res .check-result__text{color:var(--success);}
+    .check-result.wrong-res   .check-result__text{color:var(--danger);}
+    .check-result__text strong{font-weight:800;}
+
+    /* ── BOTTOM ACTIONS ── */
+    .bottom-actions{display:flex;flex-direction:column;gap:10px;}
+    .btn-next-err{
+      width:100%;padding:16px;
+      background:var(--gradient);border-radius:var(--radius-lg);
+      font-size:15px;font-weight:800;color:#fff;
+      box-shadow:0 4px 20px rgba(91,108,249,0.35);
+      transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-next-err:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(91,108,249,0.5);}
+    .btn-back-res{
+      width:100%;padding:14px;
+      background:var(--bg-surface);border:1.5px solid var(--border);
+      border-radius:var(--radius-lg);
+      font-size:14px;font-weight:700;color:var(--text-soft);
+      transition:all 0.18s;
+    }
+    .btn-back-res:hover{border-color:var(--accent-border);color:var(--text);}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="page" id="mainPage">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="results.html" class="topbar__back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+    <div class="topbar__chip" id="topChip">Задание 5</div>
+    <div class="topbar__nav">
+      <button class="topbar__arrow" id="btnPrev" onclick="prevTask()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M7.5 2L4 6L7.5 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="topbar__arrow" id="btnNext2" onclick="nextTask()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M4.5 2L8 6L4.5 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── TASK HEADER ─── -->
+  <div class="task-header">
+    <div class="task-header__top">
+      <div class="task-num" id="taskNum">05</div>
+      <div class="task-topic" id="taskTopic">Линейные уравнения</div>
+      <div class="task-wrong-badge">
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+          <path d="M7 2L2 7M2 2L7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Ошибка
+      </div>
+    </div>
+    <div class="task-text" id="taskText">
+      Решите уравнение:
+      <span class="task-formula" id="taskFormula">5x − 3 = 2x + 9</span>
+    </div>
+    <div class="answer-compare">
+      <div class="ans-box wrong">
+        <span class="ans-box__label">Твой ответ</span>
+        <span class="ans-box__val" id="userAnswer">2</span>
+      </div>
+      <div class="ans-box correct">
+        <span class="ans-box__label">Верный ответ</span>
+        <span class="ans-box__val" id="correctAnswer">4</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 1. ТВОЯ ОШИБКА ─── -->
+  <div class="sec-label" style="animation:fadeUp 0.4s ease 0.05s both">
+    <div class="sec-label__icon" style="background:var(--danger-dim);border:1px solid var(--danger-border);">❌</div>
+    Твоя ошибка
+  </div>
+  <div class="mistake-card">
+    <div class="mistake-text" id="mistakeText">
+      Ты перенёс слагаемые, но <span class="mistake-highlight">не изменил знак</span> при переносе через знак равенства.
+      Вместо <span class="mistake-highlight">−3 стало +3</span> — это классическая ошибка при работе с уравнениями.
+    </div>
+    <div class="mistake-step" id="mistakeStep">
+      <div class="mistake-step__icon">🔍</div>
+      <div class="mistake-step__text" id="mistakeStepText">
+        Скорее всего ты написал: <strong>5x − 2x = 9 + 3 → 3x = 12 → x = 4</strong> — но допустил ошибку в знаке и получил <strong>3x = 6 → x = 2</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 2. ПРАВИЛЬНОЕ РЕШЕНИЕ ─── -->
+  <div class="sec-label" style="animation:fadeUp 0.4s ease 0.1s both">
+    <div class="sec-label__icon" style="background:var(--success-dim);border:1px solid var(--success-border);">✅</div>
+    Правильное решение
+  </div>
+  <div class="solution-card">
+    <div id="solutionSteps"><!-- JS --></div>
+  </div>
+
+  <!-- ─── 3. ГДЕ ТЫ ОШИБСЯ ─── -->
+  <div class="sec-label" style="animation:fadeUp 0.4s ease 0.14s both">
+    <div class="sec-label__icon" style="background:var(--orange-dim);border:1px solid var(--orange-border);">🔎</div>
+    Где именно ошибся
+  </div>
+  <div class="where-card">
+    <div class="mistake-text" id="whereText">
+      Ошибка произошла на шаге переноса слагаемых. При переносе через «=» знак меняется на противоположный.
+    </div>
+    <div class="compare-row" id="compareRow">
+      <div class="compare-col bad">
+        <span class="compare-col__label">❌ Как сделал ты</span>
+        <div class="compare-col__line" id="wrongLine">5x − 2x = 9 − 3<br>3x = 6<br>x = 2</div>
+      </div>
+      <div class="error-arrow">→</div>
+      <div class="compare-col good">
+        <span class="compare-col__label">✅ Как нужно</span>
+        <div class="compare-col__line" id="rightLine">5x − 2x = 9 + 3<br>3x = 12<br>x = 4</div>
+      </div>
+    </div>
+    <div class="tip-list" id="tipList">
+      <div class="tip-item">
+        <div class="tip-item__bullet">1</div>
+        При переносе члена через знак «=» знак слагаемого меняется на противоположный.
+      </div>
+      <div class="tip-item">
+        <div class="tip-item__bullet">2</div>
+        Всегда делай проверку: подставь найденный x обратно в уравнение.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 4. КАК РЕШАТЬ ПРАВИЛЬНО ─── -->
+  <div class="sec-label" style="animation:fadeUp 0.4s ease 0.18s both">
+    <div class="sec-label__icon" style="background:var(--accent-dim);border:1px solid var(--accent-border);">📐</div>
+    Как решать правильно
+  </div>
+  <div class="method-card">
+    <div class="method-header">
+      <span class="method-header__icon">🧭</span>
+      <div>
+        <div class="method-header__title" id="methodTitle">Алгоритм решения линейного уравнения</div>
+        <div class="method-header__sub" id="methodSub">ax + b = cx + d</div>
+      </div>
+    </div>
+    <div class="method-algo" id="methodAlgo"><!-- JS --></div>
+    <div class="method-rule" id="methodRule"><!-- JS --></div>
+  </div>
+
+  <!-- ─── 5. ПОХОЖЕЕ ЗАДАНИЕ ─── -->
+  <div class="sec-label" style="animation:fadeUp 0.4s ease 0.22s both">
+    <div class="sec-label__icon" style="background:var(--accent-dim);border:1px solid var(--accent-border);">🎯</div>
+    Похожее задание
+  </div>
+  <div class="similar-card">
+    <div class="similar-header">
+      <div class="similar-header__title">Закрепи тему</div>
+      <div class="similar-header__badge" id="similarBadge">Тренировка</div>
+    </div>
+    <div class="similar-body">
+      <div class="similar-question" id="similarQuestion">Решите уравнение:</div>
+      <span class="similar-formula" id="similarFormula">7x + 2 = 3x + 18</span>
+      <div class="similar-input-wrap">
+        <input class="similar-input" id="similarInput"
+          type="text" inputmode="decimal" autocomplete="off"
+          placeholder="Введите ответ" />
+        <div class="input-icon" id="inputIcon" style="display:none"></div>
+      </div>
+      <div class="similar-hint" id="similarHint">Запишите только число</div>
+      <button class="btn-check" id="btnCheck" onclick="checkSimilar()">Проверить ответ</button>
+      <button class="btn-reveal" id="btnReveal" onclick="revealAnswer()">Показать ответ</button>
+      <div class="check-result" id="checkResult">
+        <span class="check-result__icon" id="checkIcon"></span>
+        <div class="check-result__text" id="checkText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ACTIONS -->
+  <div class="bottom-actions">
+    <button class="btn-next-err" onclick="nextTask()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <path d="M3 7.5H12M12 7.5L8.5 4M12 7.5L8.5 11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Следующая ошибка
+    </button>
+    <button class="btn-back-res" onclick="history.back()">← Назад к результатам</button>
+  </div>
+
+</div>
+
+<script>
+  /* ─────────────────────────────────────
+     ДАННЫЕ ПО ЗАДАЧАМ
+  ───────────────────────────────────── */
+  const TASKS = [
+    {
+      id: 5, topic: 'Линейные уравнения',
+      text: 'Решите уравнение:',
+      formula: '5x − 3 = 2x + 9',
+      userAns: '2', correctAns: '4',
+      mistakeText: 'Ты перенёс слагаемые, но <span class="mistake-highlight">не изменил знак</span> при переносе через знак равенства. Вместо <span class="mistake-highlight">−3 стало +3</span> в правой части — это классическая ошибка.',
+      mistakeStep: 'Скорее всего ты написал: <strong>3x = 9 − 3 = 6 → x = 2</strong>, забыв изменить знак у −3 при переносе вправо.',
+      solution: [
+        { title: 'Перенеси x-члены влево, числа — вправо', text: 'Переносим слагаемые: члены с x — в левую часть, числа — в правую. Знак при переносе меняется.', formula: '5x − 2x = 9 + 3', cls:'neutral' },
+        { title: 'Приведи подобные слагаемые', text: 'Считаем левую и правую часть отдельно.', formula: '3x = 12', cls:'neutral' },
+        { title: 'Найди x', text: 'Делим обе части уравнения на коэффициент при x.', formula: 'x = 12 ÷ 3 = 4', cls:'' },
+        { title: 'Проверка', text: 'Подставляем x = 4 в исходное уравнение:', formula: '5·4 − 3 = 2·4 + 9 → 17 = 17 ✓', cls:'' },
+      ],
+      whereText: 'Ошибка на шаге переноса. При переносе через «=» знак меняется на противоположный.',
+      wrongLine: '5x − 2x = 9 − 3\n3x = 6\nx = 2',
+      rightLine:  '5x − 2x = 9 + 3\n3x = 12\nx = 4',
+      tips: [
+        'При переносе члена через «=» знак меняется: + становится −, и наоборот.',
+        'Всегда делай проверку: подставь ответ обратно в уравнение.',
+        'Не торопись — знаковые ошибки чаще всего возникают при спешке.',
+      ],
+      method: {
+        title: 'Алгоритм решения линейного уравнения',
+        sub: 'ax + b = cx + d',
+        steps: [
+          'Перенеси все члены с <strong>x</strong> в левую часть, все числа — в правую <strong>(не забудь менять знак!)</strong>.',
+          'Приведи подобные слагаемые в каждой части.',
+          'Раздели обе части на коэффициент при x.',
+          '<strong>Обязательно</strong> подставь ответ в исходное уравнение для проверки.',
+        ],
+        rule: 'При переносе слагаемого через знак «=» его знак меняется на противоположный:\na + b = c  →  a = c − b',
+      },
+      similar: {
+        question: 'Решите уравнение:',
+        formula: '7x + 2 = 3x + 18',
+        hint: 'Запишите только целое число',
+        answer: '4',
+        successMsg: '<strong>Правильно!</strong> x = 4. Ты перенёс слагаемые верно: 7x − 3x = 18 − 2 → 4x = 16 → x = 4.',
+        failMsg: 'Не совсем. Попробуй ещё раз: перенеси x-члены влево, числа вправо, меняя знаки.',
+      },
+    },
+    {
+      id: 9, topic: 'Вероятность',
+      text: 'Брошена правильная игральная кость. Найдите вероятность того, что выпадет чётное число.',
+      formula: '',
+      userAns: '0,33', correctAns: '0,5',
+      mistakeText: 'Ты подсчитал <span class="mistake-highlight">2 чётных числа вместо 3</span>. Чётные числа на кубике: 2, 4, 6 — их три, а не два.',
+      mistakeStep: 'Скорее всего ты взял числа <strong>2 и 4</strong>, забыв про <strong>6</strong>. Вероятность 2/6 ≈ 0,33, а правильно: 3/6 = 0,5.',
+      solution: [
+        { title: 'Определи пространство элементарных событий', text: 'На кубике грани: 1, 2, 3, 4, 5, 6. Всего 6 равновозможных исходов.', formula: 'n = 6', cls:'neutral' },
+        { title: 'Найди число благоприятных исходов', text: 'Чётные числа: 2, 4, 6 — три числа.', formula: 'm = 3', cls:'neutral' },
+        { title: 'Вычисли вероятность', text: 'P = m/n — формула классической вероятности.', formula: 'P = 3/6 = 0,5', cls:'' },
+      ],
+      whereText: 'Ошибка при подсчёте чётных чисел — пропущена цифра 6.',
+      wrongLine: 'Чётные: 2, 4\nm = 2\nP = 2/6 ≈ 0,33',
+      rightLine:  'Чётные: 2, 4, 6\nm = 3\nP = 3/6 = 0,5',
+      tips: [
+        'Внимательно выпиши все элементы пространства событий перед подсчётом.',
+        'Чётные числа от 1 до 6: 2, 4, 6 — проверяй, делится ли на 2.',
+        'Формула: P = (число благоприятных) / (общее число исходов).',
+      ],
+      method: {
+        title: 'Формула классической вероятности',
+        sub: 'P(A) = m / n',
+        steps: [
+          'Запиши <strong>все</strong> возможные исходы — пространство элементарных событий (n).',
+          'Выдели <strong>благоприятные</strong> исходы, удовлетворяющие условию (m).',
+          'Вычисли вероятность: <strong>P = m / n</strong>.',
+          'Проверь: вероятность всегда от 0 до 1.',
+        ],
+        rule: 'P(A) = m / n\nгде m — число благоприятных исходов,\nn — общее число равновозможных исходов.',
+      },
+      similar: {
+        question: 'Монету бросают один раз. Найдите вероятность того, что выпадет орёл.',
+        formula: '',
+        hint: 'Запишите десятичную дробь',
+        answer: '0,5',
+        successMsg: '<strong>Правильно!</strong> P = 1/2 = 0,5. У монеты 2 стороны, орёл — 1 исход.',
+        failMsg: 'Подумай: сколько всего исходов? Сколько из них — орёл?',
+      },
+    },
+    {
+      id: 15, topic: 'Процентные вычисления',
+      text: 'Цена товара выросла с 500 ₽ до 620 ₽. На сколько процентов увеличилась цена?',
+      formula: '',
+      userAns: '20', correctAns: '24',
+      mistakeText: 'Ты посчитал прирост от <span class="mistake-highlight">новой цены</span> (620), а нужно считать от <span class="mistake-highlight">исходной</span> (500).',
+      mistakeStep: 'Ты мог разделить 120 ÷ 620 ≈ 0,19 → 19 ≈ 20%. Но база всегда — <strong>исходная цена</strong>: 120 ÷ 500 = 0,24 = 24%.',
+      solution: [
+        { title: 'Найди абсолютное изменение', text: 'Разница между новой и исходной ценой.', formula: '620 − 500 = 120 ₽', cls:'neutral' },
+        { title: 'Раздели на исходное значение', text: 'Процент изменения считается от начальной величины.', formula: '120 ÷ 500 = 0,24', cls:'neutral' },
+        { title: 'Переведи в проценты', text: 'Умножаем на 100%.', formula: '0,24 × 100% = 24%', cls:'' },
+      ],
+      whereText: 'Ошибка в выборе базы: процент изменения считается от исходного значения, не от конечного.',
+      wrongLine: '120 ÷ 620 ≈ 0,19\n≈ 19% ≈ 20%\n(база — новая цена)',
+      rightLine:  '120 ÷ 500 = 0,24\n= 24%\n(база — исходная цена)',
+      tips: [
+        'Процент изменения: Δ% = (новое − старое) / старое × 100%.',
+        'Делитель (база) — всегда исходное значение, не конечное.',
+        'Запомни формулу и подставляй данные из условия.',
+      ],
+      method: {
+        title: 'Формула процентного изменения',
+        sub: 'Δ% = (B − A) / A × 100%',
+        steps: [
+          'Найди <strong>абсолютное изменение</strong>: разность нового и старого значения.',
+          'Раздели на <strong>исходное (старое)</strong> значение — это база.',
+          'Умножь результат на 100%.',
+          'Если получилось положительное число — рост, отрицательное — снижение.',
+        ],
+        rule: 'Δ% = (Новое − Исходное) / Исходное × 100%\n\nОсновное правило: база = исходное значение.',
+      },
+      similar: {
+        question: 'Зарплата сотрудника выросла с 40 000 ₽ до 46 000 ₽. На сколько процентов она увеличилась?',
+        formula: '',
+        hint: 'Запишите только число (без знака %)',
+        answer: '15',
+        successMsg: '<strong>Правильно!</strong> (46 000 − 40 000) / 40 000 × 100% = 15%.',
+        failMsg: 'Помни: считаем от исходной зарплаты (40 000), не от новой. Попробуй снова.',
+      },
+    },
+  ];
+
+  /* ─────────────────────────────────────
+     СОСТОЯНИЕ
+  ───────────────────────────────────── */
+  let currentIdx = 0;
+  const task = TASKS[currentIdx];
+
+  /* ─────────────────────────────────────
+     РЕНДЕР
+  ───────────────────────────────────── */
+  function render(t) {
+    document.getElementById('topChip').textContent    = `Задание ${t.id}`;
+    document.getElementById('taskNum').textContent    = String(t.id).padStart(2,'0');
+    document.getElementById('taskTopic').textContent  = t.topic;
+    document.getElementById('taskText').innerHTML     = t.text + (t.formula ? `<span class="task-formula" id="taskFormula">${t.formula}</span>` : '');
+    document.getElementById('userAnswer').textContent    = t.userAns;
+    document.getElementById('correctAnswer').textContent = t.correctAns;
+
+    document.getElementById('mistakeText').innerHTML     = t.mistakeText;
+    document.getElementById('mistakeStepText').innerHTML = t.mistakeStep;
+
+    // Solution steps
+    document.getElementById('solutionSteps').innerHTML = t.solution.map((s,i) => `
+      <div class="solution-step">
+        <div class="step-num">${i+1}</div>
+        <div class="step-body">
+          <div class="step-title">${s.title}</div>
+          <div class="step-text">${s.text}</div>
+          <span class="step-formula ${s.cls}">${s.formula}</span>
+          ${i === t.solution.length-1 ? `<div class="step-result"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5L4.5 8.5L9.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> x = ${t.correctAns}</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    // Where wrong
+    document.getElementById('whereText').textContent = t.whereText;
+    document.getElementById('wrongLine').innerHTML   = t.wrongLine.replace(/\n/g,'<br>');
+    document.getElementById('rightLine').innerHTML   = t.rightLine.replace(/\n/g,'<br>');
+    document.getElementById('tipList').innerHTML     = t.tips.map((tip,i) => `
+      <div class="tip-item">
+        <div class="tip-item__bullet">${i+1}</div>
+        ${tip}
+      </div>`).join('');
+
+    // Method
+    document.getElementById('methodTitle').textContent = t.method.title;
+    document.getElementById('methodSub').textContent   = t.method.sub;
+    document.getElementById('methodAlgo').innerHTML    = t.method.steps.map((s,i) => `
+      <div class="algo-step">
+        <div class="algo-step__num">${i+1}</div>
+        <div class="algo-step__text">${s}</div>
+      </div>`).join('');
+    document.getElementById('methodRule').innerHTML = `
+      <div class="rule-box">
+        <div class="rule-box__label">Ключевое правило</div>
+        <div class="rule-box__text">${t.method.rule.replace(/\n/g,'<br>')}</div>
+      </div>`;
+
+    // Similar task
+    document.getElementById('similarQuestion').textContent = t.similar.question;
+    document.getElementById('similarFormula').textContent  = t.similar.formula;
+    document.getElementById('similarFormula').style.display = t.similar.formula ? 'block' : 'none';
+    document.getElementById('similarHint').textContent     = t.similar.hint;
+    document.getElementById('similarInput').value          = '';
+    document.getElementById('similarInput').className      = 'similar-input';
+    document.getElementById('checkResult').style.display   = 'none';
+    document.getElementById('checkResult').className       = 'check-result';
+    document.getElementById('inputIcon').style.display     = 'none';
+    document.getElementById('btnReveal').style.display     = '';
+
+    // Nav arrows
+    document.getElementById('btnPrev').disabled  = currentIdx === 0;
+    document.getElementById('btnNext2').disabled = currentIdx === TASKS.length - 1;
+  }
+
+  /* ─────────────────────────────────────
+     ПОХОЖЕЕ ЗАДАНИЕ — ПРОВЕРКА
+  ───────────────────────────────────── */
+  function checkSimilar() {
+    const input = document.getElementById('similarInput');
+    const val   = input.value.trim().replace(',','.');
+    const ans   = TASKS[currentIdx].similar.answer.replace(',','.');
+    const isOk  = parseFloat(val) === parseFloat(ans) || val === TASKS[currentIdx].similar.answer;
+    const result = document.getElementById('checkResult');
+    const icon   = document.getElementById('inputIcon');
+
+    input.classList.remove('correct-ans','wrong-ans');
+    input.classList.add(isOk ? 'correct-ans' : 'wrong-ans');
+    icon.style.display = 'flex';
+    icon.className = `input-icon ${isOk ? 'success-i' : 'danger-i'}`;
+    icon.textContent = isOk ? '✓' : '✗';
+
+    result.style.display = '';
+    result.className = `check-result ${isOk ? 'correct-res' : 'wrong-res'}`;
+    document.getElementById('checkIcon').textContent = isOk ? '🎉' : '💡';
+    document.getElementById('checkText').innerHTML   = isOk
+      ? TASKS[currentIdx].similar.successMsg
+      : TASKS[currentIdx].similar.failMsg;
+  }
+
+  function revealAnswer() {
+    const t = TASKS[currentIdx];
+    document.getElementById('similarInput').value = t.similar.answer;
+    document.getElementById('similarInput').classList.add('correct-ans');
+    const icon = document.getElementById('inputIcon');
+    icon.style.display = 'flex';
+    icon.className = 'input-icon success-i';
+    icon.textContent = '✓';
+    const result = document.getElementById('checkResult');
+    result.style.display = '';
+    result.className = 'check-result correct-res';
+    document.getElementById('checkIcon').textContent = '💡';
+    document.getElementById('checkText').innerHTML   = `<strong>Ответ: ${t.similar.answer}.</strong> ${t.similar.successMsg}`;
+    document.getElementById('btnReveal').style.display = 'none';
+  }
+
+  /* ─────────────────────────────────────
+     НАВИГАЦИЯ
+  ───────────────────────────────────── */
+  function nextTask() {
+    if (currentIdx < TASKS.length - 1) { currentIdx++; render(TASKS[currentIdx]); window.scrollTo({top:0,behavior:'smooth'}); }
+  }
+  function prevTask() {
+    if (currentIdx > 0) { currentIdx--; render(TASKS[currentIdx]); window.scrollTo({top:0,behavior:'smooth'}); }
+  }
+
+  /* Enter для проверки */
+  document.getElementById('similarInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkSimilar();
+  });
+
+  /* ─────────────────────────────────────
+     СТАРТ
+  ───────────────────────────────────── */
+  render(TASKS[0]);
+</script>
+</body>
+</html>
