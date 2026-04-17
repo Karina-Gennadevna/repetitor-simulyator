@@ -2014,9 +2014,7 @@
        АУДИОПЛЕЕР (ElevenLabs + Web Audio API)
        Web Audio API обходит ограничения мобильных браузеров на autoplay
     ───────────────────────────────────── */
-    const EL_KEY   = 'sk_e9f9b0fcb30fac4e2a39cf7bafc96081ae77058bac606940';
-    const EL_VOICE = 'EXAVITQu4vr4xnSDxMaL'; // Bella
-    const EL_MODEL = 'eleven_multilingual_v2';
+    const TTS_URL = '/api/tts'; // серверный прокси — ключ хранится в Vercel env
 
     let audioPlaysLeft  = 2;
     let audioIsSpeaking = false;
@@ -2089,14 +2087,10 @@
 
       try {
         if (!audioCachedBuf) {
-          const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, {
+          const resp = await fetch(TTS_URL, {
             method: 'POST',
-            headers: { 'xi-api-key': EL_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: q.audioText,
-              model_id: EL_MODEL,
-              voice_settings: { stability: 0.45, similarity_boost: 0.80, style: 0.25, use_speaker_boost: true }
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: q.audioText }),
           });
           if (!resp.ok) throw new Error('API ' + resp.status);
           const arrayBuf = await resp.arrayBuffer();
