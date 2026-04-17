@@ -2127,8 +2127,8 @@
       } catch (e) {
         audioIsSpeaking = false;
         if (btn) btn.disabled = false;
-        setAudioStatus('Ошибка загрузки. Проверьте соединение.', '');
-        console.error(e);
+        setAudioStatus('Ошибка: ' + (e.message || String(e)), '');
+        console.error('Audio error:', e);
       }
     }
 
