@@ -1696,9 +1696,10 @@
       const q = questions[idx];
 
       // Сбросить аудио при смене вопроса
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (audioElement) { audioElement.pause(); audioElement = null; }
       audioIsSpeaking = false;
       audioPlaysLeft  = 2;
+      audioCachedUrl  = null;
 
       // Рендер аудиоплеера (если вопрос с аудио)
       renderAudioPlayer(q);
@@ -2010,26 +2011,21 @@
     }
 
     /* ─────────────────────────────────────
-       АУДИОПЛЕЕР (Web Speech API)
+       АУДИОПЛЕЕР (ElevenLabs TTS)
     ───────────────────────────────────── */
-    let audioPlaysLeft = 2;
+    const EL_KEY     = 'sk_e9f9b0fcb30fac4e2a39cf7bafc96081ae77058bac606940';
+    const EL_VOICE   = 'EXAVITQu4vr4xnSDxMaL'; // Bella — хорошо читает по-русски
+    const EL_MODEL   = 'eleven_multilingual_v2';
+
+    let audioPlaysLeft  = 2;
     let audioIsSpeaking = false;
-    let audioUtterance  = null;
+    let audioElement    = null;
+    let audioCachedUrl  = null; // кэш: не перегружаем API на второе прослушивание
 
     function renderAudioPlayer(q) {
       const el = document.getElementById('audioPlayerContainer');
       if (!el) return;
-
       if (!q.audioText) { el.innerHTML = ''; return; }
-
-      if (!('speechSynthesis' in window)) {
-        el.innerHTML = `
-          <div class="audio-no-support">
-            ⚠️ Ваш браузер не поддерживает синтез речи. Прочитайте текст самостоятельно:<br><br>
-            <em>${q.audioText.replace(/\n/g, '<br>')}</em>
-          </div>`;
-        return;
-      }
 
       el.innerHTML = `
         <div class="audio-card">
@@ -2063,7 +2059,7 @@
           </div>
           <div class="audio-status" id="audioStatus">Нажмите «Прослушать», чтобы воспроизвести текст</div>
           <div class="audio-warn">
-            <strong>Как на экзамене:</strong> текст читается не более 2 раз. Во время прослушивания делайте заметки — это поможет при написании изложения.
+            <strong>Как на экзамене:</strong> текст читается не более 2 раз. Во время прослушивания делайте заметки.
           </div>
         </div>`;
 
@@ -2074,52 +2070,72 @@
       if (audioIsSpeaking) { stopAudio(); } else { playAudio(); }
     }
 
-    function playAudio() {
+    async function playAudio() {
       if (audioPlaysLeft <= 0) return;
       const q = questions[current];
       if (!q.audioText) return;
 
-      window.speechSynthesis.cancel();
-      audioUtterance = new SpeechSynthesisUtterance(q.audioText);
-      audioUtterance.lang  = 'ru-RU';
-      audioUtterance.rate  = 0.88;
-      audioUtterance.pitch = 1.0;
+      // Показать загрузку
+      setAudioStatus('Загрузка аудио...', 'active');
+      const btn = document.getElementById('btnPlay');
+      if (btn) { btn.disabled = true; }
 
-      // Выбираем русский голос если есть
-      const voices = window.speechSynthesis.getVoices();
-      const ruVoice = voices.find(v => v.lang && v.lang.startsWith('ru'));
-      if (ruVoice) audioUtterance.voice = ruVoice;
-
-      audioUtterance.onstart = () => {
-        audioIsSpeaking = true;
-        audioPlaysLeft--;
-        updateAudioUI();
-      };
-      audioUtterance.onend = () => {
-        audioIsSpeaking = false;
-        updateAudioUI();
-        const st = document.getElementById('audioStatus');
-        if (!st) return;
-        if (audioPlaysLeft <= 0) {
-          st.textContent = '✓ Оба прослушивания использованы. Приступайте к изложению.';
-          st.className = 'audio-status done';
-        } else {
-          st.textContent = `Можно прослушать ещё ${audioPlaysLeft} раз`;
-          st.className = 'audio-status';
+      try {
+        // Используем кэш если уже загружали
+        if (!audioCachedUrl) {
+          const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, {
+            method: 'POST',
+            headers: {
+              'xi-api-key': EL_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: q.audioText,
+              model_id: EL_MODEL,
+              voice_settings: { stability: 0.45, similarity_boost: 0.80, style: 0.25, use_speaker_boost: true }
+            })
+          });
+          if (!resp.ok) throw new Error('API error ' + resp.status);
+          const blob = await resp.blob();
+          audioCachedUrl = URL.createObjectURL(blob);
         }
-      };
-      audioUtterance.onerror = () => { audioIsSpeaking = false; updateAudioUI(); };
 
-      window.speechSynthesis.speak(audioUtterance);
+        audioElement = new Audio(audioCachedUrl);
+        audioPlaysLeft--;
+        audioIsSpeaking = true;
+        updateAudioUI();
+
+        audioElement.onended = () => {
+          audioIsSpeaking = false;
+          updateAudioUI();
+          if (audioPlaysLeft <= 0) {
+            setAudioStatus('✓ Оба прослушивания использованы. Приступайте к изложению.', 'done');
+          } else {
+            setAudioStatus(`Можно прослушать ещё ${audioPlaysLeft} раз`, '');
+          }
+        };
+        audioElement.onerror = () => { audioIsSpeaking = false; updateAudioUI(); setAudioStatus('Ошибка воспроизведения', ''); };
+        audioElement.play();
+
+      } catch (e) {
+        if (btn) { btn.disabled = false; }
+        setAudioStatus('Ошибка загрузки. Проверьте интернет-соединение.', '');
+      }
     }
 
     function stopAudio() {
-      window.speechSynthesis.cancel();
+      if (audioElement) { audioElement.pause(); audioElement.currentTime = 0; }
       audioIsSpeaking = false;
-      audioPlaysLeft = Math.min(audioPlaysLeft + 1, 2); // вернуть попытку при ручной остановке
+      audioPlaysLeft = Math.min(audioPlaysLeft + 1, 2);
       updateAudioUI();
+      setAudioStatus('Воспроизведение остановлено', '');
+    }
+
+    function setAudioStatus(text, cls) {
       const st = document.getElementById('audioStatus');
-      if (st) { st.textContent = 'Воспроизведение остановлено'; st.className = 'audio-status'; }
+      if (!st) return;
+      st.textContent = text;
+      st.className = 'audio-status' + (cls ? ' ' + cls : '');
     }
 
     function updateAudioUI() {
@@ -2137,8 +2153,7 @@
         if (label) label.textContent = 'Остановить';
         if (icon)  icon.setAttribute('d', 'M2 2H5.5V11H2V2ZM7.5 2H11V11H7.5V2Z');
         if (wave)  wave.classList.add('visible');
-        const st = document.getElementById('audioStatus');
-        if (st) { st.textContent = 'Текст воспроизводится...'; st.className = 'audio-status active'; }
+        setAudioStatus('Текст воспроизводится...', 'active');
       } else {
         btn.classList.remove('playing');
         btn.disabled = audioPlaysLeft <= 0;
@@ -2147,16 +2162,9 @@
         if (wave)  wave.classList.remove('visible');
       }
 
-      // Точки: сколько использовано
       const used = 2 - audioPlaysLeft;
       if (dot1) dot1.className = `audio-dot ${used >= 1 ? 'played' : ''}`;
       if (dot2) dot2.className = `audio-dot ${used >= 2 ? 'played' : ''}`;
-    }
-
-    // Загружаем голоса заранее
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
 
     /* ─────────────────────────────────────
