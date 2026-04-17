@@ -1696,10 +1696,10 @@
       const q = questions[idx];
 
       // Сбросить аудио при смене вопроса
-      if (audioElement) { audioElement.pause(); audioElement = null; }
+      if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
       audioIsSpeaking = false;
       audioPlaysLeft  = 2;
-      audioCachedUrl  = null;
+      audioCachedBuf  = null;
 
       // Рендер аудиоплеера (если вопрос с аудио)
       renderAudioPlayer(q);
@@ -2011,16 +2011,18 @@
     }
 
     /* ─────────────────────────────────────
-       АУДИОПЛЕЕР (ElevenLabs TTS)
+       АУДИОПЛЕЕР (ElevenLabs + Web Audio API)
+       Web Audio API обходит ограничения мобильных браузеров на autoplay
     ───────────────────────────────────── */
-    const EL_KEY     = 'sk_e9f9b0fcb30fac4e2a39cf7bafc96081ae77058bac606940';
-    const EL_VOICE   = 'EXAVITQu4vr4xnSDxMaL'; // Bella — хорошо читает по-русски
-    const EL_MODEL   = 'eleven_multilingual_v2';
+    const EL_KEY   = 'sk_e9f9b0fcb30fac4e2a39cf7bafc96081ae77058bac606940';
+    const EL_VOICE = 'EXAVITQu4vr4xnSDxMaL'; // Bella
+    const EL_MODEL = 'eleven_multilingual_v2';
 
     let audioPlaysLeft  = 2;
     let audioIsSpeaking = false;
-    let audioElement    = null;
-    let audioCachedUrl  = null; // кэш: не перегружаем API на второе прослушивание
+    let audioCtx        = null;  // Web Audio API context
+    let audioSource     = null;  // текущий source node
+    let audioCachedBuf  = null;  // декодированный AudioBuffer (кэш)
 
     function renderAudioPlayer(q) {
       const el = document.getElementById('audioPlayerContainer');
@@ -2075,37 +2077,43 @@
       const q = questions[current];
       if (!q.audioText) return;
 
-      // Показать загрузку
+      // Создаём AudioContext внутри user gesture — единственный способ на iOS/Android
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
       setAudioStatus('Загрузка аудио...', 'active');
       const btn = document.getElementById('btnPlay');
-      if (btn) { btn.disabled = true; }
+      if (btn) btn.disabled = true;
 
       try {
-        // Используем кэш если уже загружали
-        if (!audioCachedUrl) {
+        if (!audioCachedBuf) {
           const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, {
             method: 'POST',
-            headers: {
-              'xi-api-key': EL_KEY,
-              'Content-Type': 'application/json',
-            },
+            headers: { 'xi-api-key': EL_KEY, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               text: q.audioText,
               model_id: EL_MODEL,
               voice_settings: { stability: 0.45, similarity_boost: 0.80, style: 0.25, use_speaker_boost: true }
             })
           });
-          if (!resp.ok) throw new Error('API error ' + resp.status);
-          const blob = await resp.blob();
-          audioCachedUrl = URL.createObjectURL(blob);
+          if (!resp.ok) throw new Error('API ' + resp.status);
+          const arrayBuf = await resp.arrayBuffer();
+          audioCachedBuf = await audioCtx.decodeAudioData(arrayBuf);
         }
 
-        audioElement = new Audio(audioCachedUrl);
+        // Запускаем через Web Audio API — работает на мобильных без ограничений
+        if (audioSource) { try { audioSource.stop(); } catch(e) {} }
+        audioSource = audioCtx.createBufferSource();
+        audioSource.buffer = audioCachedBuf;
+        audioSource.connect(audioCtx.destination);
+
         audioPlaysLeft--;
         audioIsSpeaking = true;
         updateAudioUI();
 
-        audioElement.onended = () => {
+        audioSource.onended = () => {
           audioIsSpeaking = false;
           updateAudioUI();
           if (audioPlaysLeft <= 0) {
@@ -2114,17 +2122,18 @@
             setAudioStatus(`Можно прослушать ещё ${audioPlaysLeft} раз`, '');
           }
         };
-        audioElement.onerror = () => { audioIsSpeaking = false; updateAudioUI(); setAudioStatus('Ошибка воспроизведения', ''); };
-        audioElement.play();
+        audioSource.start(0);
 
       } catch (e) {
-        if (btn) { btn.disabled = false; }
-        setAudioStatus('Ошибка загрузки. Проверьте интернет-соединение.', '');
+        audioIsSpeaking = false;
+        if (btn) btn.disabled = false;
+        setAudioStatus('Ошибка загрузки. Проверьте соединение.', '');
+        console.error(e);
       }
     }
 
     function stopAudio() {
-      if (audioElement) { audioElement.pause(); audioElement.currentTime = 0; }
+      if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
       audioIsSpeaking = false;
       audioPlaysLeft = Math.min(audioPlaysLeft + 1, 2);
       updateAudioUI();
