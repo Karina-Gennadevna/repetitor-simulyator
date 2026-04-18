@@ -1981,14 +1981,35 @@
     /* ─────────────────────────────────────
        ЗАВЕРШЕНИЕ
     ───────────────────────────────────── */
+    function stripHtml(html) {
+      return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
     function finishExam() {
       clearInterval(timerID);
       closeTaskMap();
       const answeredCount = answers.filter(a => a !== null).length;
-      const p = new URLSearchParams({
-        exam:    EXAM,
+
+      // Сохраняем данные для AI-анализа в sessionStorage
+      const examData = {
+        exam: EXAM,
         subject: SUBJECT,
-        answered: answeredCount,
+        questions: questions.map((q, i) => ({
+          id:         q.id,
+          type:       q.type,
+          text:       stripHtml(q.text),
+          hint:       q.hint || '',
+          example:    q.example || '',
+          options:    q.options || null,
+          userAnswer: answers[i],
+        })).filter(q => q.userAnswer !== null),
+      };
+      sessionStorage.setItem('examData', JSON.stringify(examData));
+
+      const p = new URLSearchParams({
+        exam:       EXAM,
+        subject:    SUBJECT,
+        answered:   answeredCount,
         total,
         time_spent: config.duration - timeLeft,
       });
