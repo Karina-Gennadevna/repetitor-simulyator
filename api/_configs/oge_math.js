@@ -1,8 +1,35 @@
 /**
- * ExamConfig — ОГЭ Математика 2026
- * Источник структуры: КИМ ФИПИ 2026 (структура не изменилась относительно 2025)
- * Задания 1–5 формируют единый контекстный блок (одна жизненная ситуация).
+ * ExamConfig — ОГЭ Математика
+ * Структура: КИМ ФИПИ 2026 (не изменилась относительно 2025)
+ * Добавить новый год = добавить объект в configs[year] + codifiers[year]
  */
+
+// ── РЕЖИМЫ ГЕНЕРАЦИИ ──────────────────────────────────────────────────────────
+export const modeRules = {
+  ai_fipi_style: {
+    description:
+      'Claude генерирует авторские задания, строго следуя структуре и тематике КИМ ФИПИ. ' +
+      'Задания не копируются из официального банка — они оригинальны, но идентичны по типу, ' +
+      'сложности и формату ответа.',
+    allowedSourceTypes: ['ai_generated'],
+    sourceStyle:        'fipi_aligned',
+    requiresOfficialMapping: false,
+    isValidatedAgainstBlueprint: true,
+    forbiddenSources: [],
+    note: 'Текущий рабочий режим. Даёт реальную пользу ученику уже сейчас.',
+  },
+  official_bank: {
+    description:
+      'Задания берутся из официального открытого банка ФИПИ или демо-вариантов. ' +
+      'Каждое задание должно иметь source_url и подтверждённый официальный ответ.',
+    allowedSourceTypes: ['fipi_open_bank', 'official_demo', 'official_navigator'],
+    sourceStyle:        'official',
+    requiresOfficialMapping: true,
+    isValidatedAgainstBlueprint: true,
+    forbiddenSources: ['ai_generated', 'unofficial_reshebniks', 'fan_compilations'],
+    note: 'Будущий режим. Требует базы данных с официальными заданиями ФИПИ.',
+  },
+};
 
 export const configs = {
   2026: {
@@ -15,35 +42,248 @@ export const configs = {
     gradeThresholds: { 5: 22, 4: 15, 3: 8 },
     geometryTaskIds: [15, 16, 17, 18, 19, 23, 24, 25],
 
+    generationMode: 'ai_fipi_style',  // активный режим
+
     tasks: [
-      // ── ЧАСТЬ 1: контекстный блок (задания 1–5 — единая жизненная ситуация) ──
-      { id:1,  part:1, type:'short',  score:1, topicCode:'CTX_BLOCK',      answerFormat:'integer',           contextGroup:'tasks_1_5' },
-      { id:2,  part:1, type:'short',  score:1, topicCode:'CTX_BLOCK',      answerFormat:'integer',           contextGroup:'tasks_1_5' },
-      { id:3,  part:1, type:'short',  score:1, topicCode:'CTX_BLOCK',      answerFormat:'integer',           contextGroup:'tasks_1_5' },
-      { id:4,  part:1, type:'short',  score:1, topicCode:'CTX_BLOCK',      answerFormat:'number',            contextGroup:'tasks_1_5' },
-      { id:5,  part:1, type:'short',  score:1, topicCode:'CTX_BLOCK',      answerFormat:'integer',           contextGroup:'tasks_1_5' },
-      // ── ЧАСТЬ 1: отдельные задания ──────────────────────────────────────────
-      { id:6,  part:1, type:'short',  score:1, topicCode:'CALC_RATIONAL',  answerFormat:'number'   },
-      { id:7,  part:1, type:'choice', score:1, topicCode:'CALC_NUMLINE',   answerFormat:'choice'   },
-      { id:8,  part:1, type:'short',  score:1, topicCode:'ALG_EXPRESSION', answerFormat:'number'   },
-      { id:9,  part:1, type:'short',  score:1, topicCode:'ALG_EQUATION',   answerFormat:'number'   },
-      { id:10, part:1, type:'short',  score:1, topicCode:'PROB_CLASSIC',   answerFormat:'decimal'  },
-      { id:11, part:1, type:'short',  score:1, topicCode:'ALG_FUNCTION',   answerFormat:'number'   },
-      { id:12, part:1, type:'short',  score:1, topicCode:'ALG_FORMULA',    answerFormat:'number'   },
-      { id:13, part:1, type:'choice', score:1, topicCode:'ALG_INEQUALITY', answerFormat:'choice'   },
-      { id:14, part:1, type:'short',  score:1, topicCode:'ALG_SEQUENCE',   answerFormat:'number'   },
-      { id:15, part:1, type:'short',  score:1, topicCode:'GEO_TRIANGLE',   answerFormat:'number'   },
-      { id:16, part:1, type:'short',  score:1, topicCode:'GEO_CIRCLE',     answerFormat:'number'   },
-      { id:17, part:1, type:'short',  score:1, topicCode:'GEO_AREA',       answerFormat:'number'   },
-      { id:18, part:1, type:'short',  score:1, topicCode:'GEO_GRID',       answerFormat:'number'   },
-      { id:19, part:1, type:'short',  score:1, topicCode:'GEO_THEORY',     answerFormat:'digits'   },
-      // ── ЧАСТЬ 2 (развёрнутый ответ) ─────────────────────────────────────────
-      { id:20, part:2, type:'extended', score:3, topicCode:'ADV_ALGEBRA',     answerFormat:'full_solution'      },
-      { id:21, part:2, type:'extended', score:3, topicCode:'ADV_WORDPROBLEM', answerFormat:'full_solution'      },
-      { id:22, part:2, type:'extended', score:3, topicCode:'ADV_FUNCTION',    answerFormat:'graph_construction' },
-      { id:23, part:2, type:'extended', score:3, topicCode:'ADV_GEO_CALC',    answerFormat:'full_solution'      },
-      { id:24, part:2, type:'extended', score:3, topicCode:'ADV_GEO_PROOF',   answerFormat:'proof'              },
-      { id:25, part:2, type:'extended', score:3, topicCode:'ADV_GEO_HARD',    answerFormat:'full_solution'      },
+      // ── ЧАСТЬ 1: КОНТЕКСТНЫЙ БЛОК (задания 1–5) ─────────────────────────────
+      // Пять заданий опираются на ОДИН общий текст жизненной ситуации.
+      // sharedStemGroup гарантирует, что generate.js передаёт один contextStem.
+      {
+        id: 1, taskId: 'OGE_MATH_2026_01', lineNumber: 1,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CTX_BLOCK', topicCluster: 'practical_context',
+        answerFormat: 'integer',
+        sharedStemGroup: 'tasks_1_5', contextGroup: 'tasks_1_5',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 2, taskId: 'OGE_MATH_2026_02', lineNumber: 2,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CTX_BLOCK', topicCluster: 'practical_context',
+        answerFormat: 'integer',
+        sharedStemGroup: 'tasks_1_5', contextGroup: 'tasks_1_5',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 3, taskId: 'OGE_MATH_2026_03', lineNumber: 3,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CTX_BLOCK', topicCluster: 'practical_context',
+        answerFormat: 'integer',
+        sharedStemGroup: 'tasks_1_5', contextGroup: 'tasks_1_5',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 4, taskId: 'OGE_MATH_2026_04', lineNumber: 4,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CTX_BLOCK', topicCluster: 'practical_context',
+        answerFormat: 'number',
+        sharedStemGroup: 'tasks_1_5', contextGroup: 'tasks_1_5',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 5, taskId: 'OGE_MATH_2026_05', lineNumber: 5,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CTX_BLOCK', topicCluster: 'practical_context',
+        answerFormat: 'integer',
+        sharedStemGroup: 'tasks_1_5', contextGroup: 'tasks_1_5',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+
+      // ── ЧАСТЬ 1: ОТДЕЛЬНЫЕ ЗАДАНИЯ ──────────────────────────────────────────
+      {
+        id: 6, taskId: 'OGE_MATH_2026_06', lineNumber: 6,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'CALC_RATIONAL', topicCluster: 'numbers_and_calculation',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 7, taskId: 'OGE_MATH_2026_07', lineNumber: 7,
+        partId: 1, part: 1, type: 'choice', score: 1,
+        topicCode: 'CALC_NUMLINE', topicCluster: 'numbers_and_coordinate_line',
+        answerFormat: 'choice',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 8, taskId: 'OGE_MATH_2026_08', lineNumber: 8,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'ALG_EXPRESSION', topicCluster: 'algebraic_expressions',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 9, taskId: 'OGE_MATH_2026_09', lineNumber: 9,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'ALG_EQUATION', topicCluster: 'equations',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 10, taskId: 'OGE_MATH_2026_10', lineNumber: 10,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'PROB_CLASSIC', topicCluster: 'probability',
+        answerFormat: 'decimal',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 11, taskId: 'OGE_MATH_2026_11', lineNumber: 11,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'ALG_FUNCTION', topicCluster: 'functions_and_graphs',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 12, taskId: 'OGE_MATH_2026_12', lineNumber: 12,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'ALG_FORMULA', topicCluster: 'formula_application',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 13, taskId: 'OGE_MATH_2026_13', lineNumber: 13,
+        partId: 1, part: 1, type: 'choice', score: 1,
+        topicCode: 'ALG_INEQUALITY', topicCluster: 'inequalities',
+        answerFormat: 'choice',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 14, taskId: 'OGE_MATH_2026_14', lineNumber: 14,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'ALG_SEQUENCE', topicCluster: 'sequences',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 15, taskId: 'OGE_MATH_2026_15', lineNumber: 15,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'GEO_TRIANGLE', topicCluster: 'geometry_triangle_or_basic_geometry',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 16, taskId: 'OGE_MATH_2026_16', lineNumber: 16,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'GEO_CIRCLE', topicCluster: 'geometry_circle',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 17, taskId: 'OGE_MATH_2026_17', lineNumber: 17,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'GEO_AREA', topicCluster: 'geometry_quadrilaterals_or_polygons',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 18, taskId: 'OGE_MATH_2026_18', lineNumber: 18,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'GEO_GRID', topicCluster: 'geometry_on_grid',
+        answerFormat: 'number',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 19, taskId: 'OGE_MATH_2026_19', lineNumber: 19,
+        partId: 1, part: 1, type: 'short', score: 1,
+        topicCode: 'GEO_THEORY', topicCluster: 'geometry_theory',
+        answerFormat: 'digits',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+
+      // ── ЧАСТЬ 2: РАЗВЁРНУТЫЕ ОТВЕТЫ ─────────────────────────────────────────
+      {
+        id: 20, taskId: 'OGE_MATH_2026_20', lineNumber: 20,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_ALGEBRA', topicCluster: 'advanced_algebra',
+        answerFormat: 'full_solution',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 21, taskId: 'OGE_MATH_2026_21', lineNumber: 21,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_WORDPROBLEM', topicCluster: 'advanced_word_problem',
+        answerFormat: 'full_solution',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 22, taskId: 'OGE_MATH_2026_22', lineNumber: 22,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_FUNCTION', topicCluster: 'advanced_functions_and_graphs',
+        answerFormat: 'graph_construction',
+        // MVP без рисования: структурированная форма (вершина, нули, знак, доп. вопрос)
+        mvpNote: 'В браузере реализуется как структурированная форма, не свободное рисование',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 23, taskId: 'OGE_MATH_2026_23', lineNumber: 23,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_GEO_CALC', topicCluster: 'advanced_geometry_computation',
+        answerFormat: 'full_solution',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 24, taskId: 'OGE_MATH_2026_24', lineNumber: 24,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_GEO_PROOF', topicCluster: 'geometry_proof',
+        answerFormat: 'proof',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
+      {
+        id: 25, taskId: 'OGE_MATH_2026_25', lineNumber: 25,
+        partId: 2, part: 2, type: 'extended', score: 3,
+        topicCode: 'ADV_GEO_HARD', topicCluster: 'advanced_geometry_high',
+        answerFormat: 'full_solution',
+        generationMode: 'ai_fipi_style',
+        sourceType: 'ai_generated', sourceStyle: 'fipi_aligned',
+        isValidatedAgainstBlueprint: true,
+      },
     ],
   },
 };

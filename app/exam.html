@@ -573,6 +573,38 @@
       box-shadow: 0 0 0 3px var(--accent-dim);
     }
     .extended-textarea.has-value { border-color: rgba(251,146,60,0.30); }
+    /* ── GRAPH FORM (задание 22) ── */
+    .graph-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .graph-field { display: flex; flex-direction: column; gap: 5px; }
+    .graph-field__label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+    }
+    .graph-field__input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+    }
+    .graph-field__input:focus {
+      border-color: var(--accent-border);
+      background: var(--bg-hover);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .graph-field__input::placeholder { color: var(--text-muted); font-size: 13px; }
+
     .extended-ai-note {
       margin-top: 10px;
       display: flex;
@@ -1870,6 +1902,45 @@
             <div class="answer-block__label">Выберите ответ</div>
             <div class="choice-list">${items}</div>
           </div>`;
+
+      } else if (q.type === 'extended' && q.graphTask) {
+        // MVP задания 22: структурированная форма вместо свободного рисования
+        const gt = q.graphTask;
+        const savedFields = (() => { try { return JSON.parse(answers[idx] || '{}'); } catch { return {}; } })();
+
+        const fieldsHtml = (gt.fields || []).map(f => `
+          <div class="graph-field">
+            <label class="graph-field__label">${f.label}</label>
+            <input class="graph-field__input answer-input"
+              type="text" inputmode="text"
+              autocomplete="off" autocorrect="off" spellcheck="false"
+              data-key="${f.key}"
+              placeholder="${f.placeholder || ''}"
+              value="${escapeHtml(savedFields[f.key] || '')}"
+            />
+          </div>`).join('');
+
+        area.innerHTML = `
+          <div class="answer-block">
+            <div class="answer-block__label">Анализ функции</div>
+            <div class="graph-form" id="graphForm">${fieldsHtml}</div>
+            <div class="extended-ai-note" style="margin-top:12px">
+              <span class="extended-ai-note__icon">🤖</span>
+              <span class="extended-ai-note__text"><strong>ИИ проверит каждое поле</strong> после завершения экзамена.</span>
+            </div>
+          </div>`;
+
+        function saveGraphFields() {
+          const data = {};
+          area.querySelectorAll('.graph-field__input').forEach(inp => {
+            data[inp.dataset.key] = inp.value.trim();
+          });
+          const hasAny = Object.values(data).some(v => v.length > 0);
+          saveAnswer(hasAny ? JSON.stringify(data) : null);
+        }
+        area.querySelectorAll('.graph-field__input').forEach(inp => {
+          inp.addEventListener('input', saveGraphFields);
+        });
 
       } else if (q.type === 'extended') {
         area.innerHTML = `
