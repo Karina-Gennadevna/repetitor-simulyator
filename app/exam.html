@@ -2070,16 +2070,30 @@
       if (audioIsSpeaking) { stopAudio(); } else { playAudio(); }
     }
 
+    function unlockAudioCtx() {
+      // iOS требует синхронного создания и разблокировки AudioContext внутри user gesture.
+      // После первого await жест считается "завершённым" и звук не запускается.
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        // Проигрываем пустой буфер — это разблокирует контекст на iOS Safari
+        const silentBuf = audioCtx.createBuffer(1, 1, 22050);
+        const silentSrc = audioCtx.createBufferSource();
+        silentSrc.buffer = silentBuf;
+        silentSrc.connect(audioCtx.destination);
+        silentSrc.start(0);
+        audioCtx.resume();
+      }
+    }
+
     async function playAudio() {
       if (audioPlaysLeft <= 0) return;
       const q = questions[current];
       if (!q.audioText) return;
 
-      // Создаём AudioContext внутри user gesture — единственный способ на iOS/Android
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      // Синхронно разблокируем AudioContext ДО любых await (критично для iOS Safari)
+      unlockAudioCtx();
 
       setAudioStatus('Загрузка аудио...', 'active');
       const btn = document.getElementById('btnPlay');
