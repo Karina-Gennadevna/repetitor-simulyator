@@ -1696,10 +1696,10 @@
       const q = questions[idx];
 
       // Сбросить аудио при смене вопроса
-      if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
+      if (audioEl) { audioEl.pause(); audioEl.src = ''; }
+      if (audioBlobUrl) { URL.revokeObjectURL(audioBlobUrl); audioBlobUrl = null; }
       audioIsSpeaking = false;
       audioPlaysLeft  = 2;
-      audioCachedBuf  = null;
 
       // Рендер аудиоплеера (если вопрос с аудио)
       renderAudioPlayer(q);
@@ -2016,11 +2016,13 @@
     ───────────────────────────────────── */
     const TTS_URL = '/api/tts'; // серверный прокси — ключ хранится в Vercel env
 
+    // Минимальный валидный WAV (0 сэмплов) — для разблокировки аудио на iOS
+    const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
     let audioPlaysLeft  = 2;
     let audioIsSpeaking = false;
-    let audioCtx        = null;  // Web Audio API context
-    let audioSource     = null;  // текущий source node
-    let audioCachedBuf  = null;  // декодированный AudioBuffer (кэш)
+    let audioEl         = null;  // <audio> элемент (вместо Web Audio API)
+    let audioBlobUrl    = null;  // кэшированный Blob URL
 
     function renderAudioPlayer(q) {
       const el = document.getElementById('audioPlayerContainer');
@@ -2070,58 +2072,51 @@
       if (audioIsSpeaking) { stopAudio(); } else { playAudio(); }
     }
 
-    function unlockAudioCtx() {
-      // iOS требует синхронного создания и разблокировки AudioContext внутри user gesture.
-      // После первого await жест считается "завершённым" и звук не запускается.
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        // Проигрываем пустой буфер — это разблокирует контекст на iOS Safari
-        const silentBuf = audioCtx.createBuffer(1, 1, 22050);
-        const silentSrc = audioCtx.createBufferSource();
-        silentSrc.buffer = silentBuf;
-        silentSrc.connect(audioCtx.destination);
-        silentSrc.start(0);
-        audioCtx.resume();
-      }
-    }
-
     async function playAudio() {
       if (audioPlaysLeft <= 0) return;
       const q = questions[current];
       if (!q.audioText) return;
 
-      // Синхронно разблокируем AudioContext ДО любых await (критично для iOS Safari)
-      unlockAudioCtx();
+      // Создаём <audio> элемент один раз
+      if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.setAttribute('playsinline', '');
+        audioEl.setAttribute('webkit-playsinline', '');
+        audioEl.preload = 'none';
+      }
+
+      // iOS: play() ОБЯЗАН быть вызван синхронно внутри user gesture.
+      // Запускаем тихий WAV прямо сейчас — это "выкупает" разрешение у iOS.
+      // После любого await жест считается завершённым и play() блокируется.
+      audioEl.src = SILENT_WAV;
+      const silentDone = audioEl.play().catch(() => {});
 
       setAudioStatus('Загрузка аудио...', 'active');
       const btn = document.getElementById('btnPlay');
       if (btn) btn.disabled = true;
 
       try {
-        if (!audioCachedBuf) {
+        if (!audioBlobUrl) {
           const resp = await fetch(TTS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: q.audioText }),
           });
           if (!resp.ok) throw new Error('API ' + resp.status);
-          const arrayBuf = await resp.arrayBuffer();
-          audioCachedBuf = await audioCtx.decodeAudioData(arrayBuf);
+          const blob = await resp.blob();
+          audioBlobUrl = URL.createObjectURL(blob);
         }
 
-        // Запускаем через Web Audio API — работает на мобильных без ограничений
-        if (audioSource) { try { audioSource.stop(); } catch(e) {} }
-        audioSource = audioCtx.createBufferSource();
-        audioSource.buffer = audioCachedBuf;
-        audioSource.connect(audioCtx.destination);
+        await silentDone; // ждём окончания тихого клипа
+
+        audioEl.src = audioBlobUrl;
+        audioEl.load();
 
         audioPlaysLeft--;
         audioIsSpeaking = true;
         updateAudioUI();
 
-        audioSource.onended = () => {
+        audioEl.onended = () => {
           audioIsSpeaking = false;
           updateAudioUI();
           if (audioPlaysLeft <= 0) {
@@ -2130,7 +2125,8 @@
             setAudioStatus(`Можно прослушать ещё ${audioPlaysLeft} раз`, '');
           }
         };
-        audioSource.start(0);
+
+        await audioEl.play();
 
       } catch (e) {
         audioIsSpeaking = false;
@@ -2141,7 +2137,7 @@
     }
 
     function stopAudio() {
-      if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
+      if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
       audioIsSpeaking = false;
       audioPlaysLeft = Math.min(audioPlaysLeft + 1, 2);
       updateAudioUI();
