@@ -1643,8 +1643,22 @@
     /* ─────────────────────────────────────
        СОСТОЯНИЕ
     ───────────────────────────────────── */
-    const config    = EXAM_CONFIG[EXAM][SUBJECT];
-    const questions = QUESTIONS[EXAM][SUBJECT];
+    const config = EXAM_CONFIG[EXAM][SUBJECT];
+
+    // Загружаем сгенерированный вариант, если есть; иначе — статика
+    let questions;
+    let _generatedCorrectAnswers = null;
+    try {
+      const _gen = JSON.parse(sessionStorage.getItem('generatedExam') || 'null');
+      if (_gen?.questions?.length) {
+        questions = _gen.questions;
+        _generatedCorrectAnswers = _gen.correctAnswers || null;
+        if (_gen.duration) config.duration = _gen.duration;
+        sessionStorage.removeItem('generatedExam'); // используем один раз
+      }
+    } catch (e) { /* ignore */ }
+    if (!questions) questions = QUESTIONS[EXAM][SUBJECT];
+
     const total     = questions.length;
     const answers   = new Array(total).fill(null);   // null | string
     const skipped   = new Set();
@@ -2030,7 +2044,7 @@
       const answeredCount = answers.filter(a => a !== null).length;
 
       // Сохраняем данные для AI-анализа в sessionStorage
-      const correctMap = CORRECT_ANSWERS[EXAM]?.[SUBJECT] || {};
+      const correctMap = _generatedCorrectAnswers || CORRECT_ANSWERS[EXAM]?.[SUBJECT] || {};
       const examData = {
         exam: EXAM,
         subject: SUBJECT,

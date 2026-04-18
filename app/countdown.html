@@ -338,14 +338,26 @@
       if (navigator.vibrate) navigator.vibrate(s.isGo ? [30,20,30] : 40);
     }
 
-    function tick() {
-      showStep(step);
-      if (step < steps.length - 1) {
-        step++;
-        setTimeout(tick, 1000);
-      } else {
-        setTimeout(goToExam, 800);
+    // ── ГЕНЕРАЦИЯ ВОПРОСОВ ──
+    let questionsReady = false;
+    let countdownDone  = false;
+
+    async function generateQuestions() {
+      try {
+        const resp = await fetch('/api/generate', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ exam, subject }),
+        });
+        if (!resp.ok) throw new Error('generate failed');
+        const data = await resp.json();
+        sessionStorage.setItem('generatedExam', JSON.stringify(data));
+      } catch (e) {
+        console.warn('Generation failed, will use static questions:', e);
+        sessionStorage.removeItem('generatedExam');
       }
+      questionsReady = true;
+      if (countdownDone) goToExam();
     }
 
     function goToExam() {
@@ -353,7 +365,29 @@
       window.location.href = `exam.html?${p.toString()}`;
     }
 
-    // Старт с небольшой задержкой для плавного появления
+    function onCountdownEnd() {
+      countdownDone = true;
+      if (questionsReady) {
+        goToExam();
+      } else {
+        numEl.textContent   = '⚙️';
+        labelEl.textContent = 'Подготавливаем ваш вариант…';
+        numEl.classList.remove('go-text');
+      }
+    }
+
+    function tick() {
+      showStep(step);
+      if (step < steps.length - 1) {
+        step++;
+        setTimeout(tick, 1000);
+      } else {
+        setTimeout(onCountdownEnd, 800);
+      }
+    }
+
+    // Запускаем генерацию и таймер параллельно
+    generateQuestions();
     setTimeout(tick, 400);
   </script>
 
