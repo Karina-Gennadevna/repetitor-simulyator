@@ -2025,6 +2025,26 @@
     let audioEl          = null;  // <audio> элемент
     let audioBlobUrl     = null;  // кэшированный Blob URL
     let audioPrefetch    = null;  // Promise фоновой загрузки
+    let audioUnlocked    = false; // iOS unlock flag
+
+    // iOS: разблокируем аудио на первом касании экрана — ДО нажатия кнопки.
+    // После этого play() работает даже вне синхронного обработчика жеста.
+    function ensureAudioEl() {
+      if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.setAttribute('playsinline', '');
+        audioEl.setAttribute('webkit-playsinline', '');
+        audioEl.preload = 'none';
+      }
+    }
+    function unlockAudioEarly() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+      ensureAudioEl();
+      audioEl.src = SILENT_WAV;
+      audioEl.play().catch(() => {});
+    }
+    document.addEventListener('touchstart', unlockAudioEarly, { once: true, passive: true });
 
     function prefetchAudio(text) {
       // Начинаем загрузку заранее, пока пользователь читает задание
@@ -2094,32 +2114,20 @@
       const q = questions[current];
       if (!q.audioText) return;
 
-      // Создаём <audio> элемент один раз
-      if (!audioEl) {
-        audioEl = document.createElement('audio');
-        audioEl.setAttribute('playsinline', '');
-        audioEl.setAttribute('webkit-playsinline', '');
-        audioEl.preload = 'none';
-      }
-
-      // iOS: play() ОБЯЗАН быть вызван синхронно внутри user gesture.
-      // Запускаем тихий WAV прямо сейчас — это "выкупает" разрешение у iOS.
-      // После любого await жест считается завершённым и play() блокируется.
-      audioEl.src = SILENT_WAV;
-      const silentDone = audioEl.play().catch(() => {});
+      ensureAudioEl();
+      // На случай если пользователь нажал кнопку раньше первого touchstart
+      if (!audioUnlocked) unlockAudioEarly();
 
       const btn = document.getElementById('btnPlay');
       if (btn) btn.disabled = true;
 
-      // Если prefetch ещё идёт — ждём его, иначе сразу продолжаем
       if (!audioBlobUrl) {
         setAudioStatus('Загрузка аудио...', 'active');
         if (!audioPrefetch) prefetchAudio(q.audioText);
+        await audioPrefetch;
       }
 
       try {
-        await Promise.all([silentDone, audioPrefetch]);
-
         if (!audioBlobUrl) throw new Error('Не удалось загрузить аудио');
 
         audioEl.src = audioBlobUrl;
