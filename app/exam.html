@@ -1698,6 +1698,7 @@
       // Сбросить аудио при смене вопроса
       if (audioEl) { audioEl.pause(); audioEl.src = ''; }
       if (audioBlobUrl) { URL.revokeObjectURL(audioBlobUrl); audioBlobUrl = null; }
+      audioPrefetch   = null;
       audioIsSpeaking = false;
       audioPlaysLeft  = 2;
 
@@ -2019,15 +2020,31 @@
     // Минимальный валидный WAV (0 сэмплов) — для разблокировки аудио на iOS
     const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 
-    let audioPlaysLeft  = 2;
-    let audioIsSpeaking = false;
-    let audioEl         = null;  // <audio> элемент (вместо Web Audio API)
-    let audioBlobUrl    = null;  // кэшированный Blob URL
+    let audioPlaysLeft   = 2;
+    let audioIsSpeaking  = false;
+    let audioEl          = null;  // <audio> элемент
+    let audioBlobUrl     = null;  // кэшированный Blob URL
+    let audioPrefetch    = null;  // Promise фоновой загрузки
+
+    function prefetchAudio(text) {
+      // Начинаем загрузку заранее, пока пользователь читает задание
+      if (audioPrefetch) return;
+      audioPrefetch = fetch(TTS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      }).then(r => r.ok ? r.blob() : Promise.reject('API ' + r.status))
+        .then(blob => { audioBlobUrl = URL.createObjectURL(blob); })
+        .catch(() => { audioPrefetch = null; }); // при ошибке — повторим при нажатии
+    }
 
     function renderAudioPlayer(q) {
       const el = document.getElementById('audioPlayerContainer');
       if (!el) return;
       if (!q.audioText) { el.innerHTML = ''; return; }
+
+      // Запускаем фоновую загрузку сразу при рендере плеера
+      prefetchAudio(q.audioText);
 
       el.innerHTML = `
         <div class="audio-card">
@@ -2091,23 +2108,19 @@
       audioEl.src = SILENT_WAV;
       const silentDone = audioEl.play().catch(() => {});
 
-      setAudioStatus('Загрузка аудио...', 'active');
       const btn = document.getElementById('btnPlay');
       if (btn) btn.disabled = true;
 
-      try {
-        if (!audioBlobUrl) {
-          const resp = await fetch(TTS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: q.audioText }),
-          });
-          if (!resp.ok) throw new Error('API ' + resp.status);
-          const blob = await resp.blob();
-          audioBlobUrl = URL.createObjectURL(blob);
-        }
+      // Если prefetch ещё идёт — ждём его, иначе сразу продолжаем
+      if (!audioBlobUrl) {
+        setAudioStatus('Загрузка аудио...', 'active');
+        if (!audioPrefetch) prefetchAudio(q.audioText);
+      }
 
-        await silentDone; // ждём окончания тихого клипа
+      try {
+        await Promise.all([silentDone, audioPrefetch]);
+
+        if (!audioBlobUrl) throw new Error('Не удалось загрузить аудио');
 
         audioEl.src = audioBlobUrl;
         audioEl.load();
