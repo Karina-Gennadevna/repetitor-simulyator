@@ -1985,24 +1985,77 @@
       return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    // Правильные ответы: short → строка, choice → индекс варианта
+    const CORRECT_ANSWERS = {
+      oge: {
+        math: {
+          1:  '5',    2:  '25',   4:  '5/8',  5:  '4',   6:  '3',
+          8:  '80',   10: '37',   11: '4',    12: '-4',  14: '16',
+          15: '24',   16: '5',    18: '27',   19: '39',
+          // choice: индекс правильного варианта
+          3:  1,  7:  1,  9:  2,  13: 1,  17: 1,
+        },
+        russian: {
+          2: 'ветер принёс',  3: '3, 4',  4: '1, 3, 4',
+          5: 'загорелый',     8: 'искусный',
+          6: 1,  7: 1,   // choice
+        },
+      },
+      ege: {
+        math: {
+          1: '-1',  2: '0',   3: '32',  4: '4',   5: '6',
+          6: '7',   7: '2',   9: '2√3', 10: '0,6', 11: '155',
+          8: 2,  12: 1,  // choice
+        },
+        russian: {
+          2: 'безжалостно',  3: 'дипломатический',  7: '1',
+          8: 'претендент',   9: 'прибрежный, приоткрыть, прибить',
+          10: '1, 3',   11: 'небольшой',  12: '3',
+          13: '2, 3, 4', 14: '1, 2, 3, 4', 15: '1, 2, 4, 5',
+          16: '1, 2, 3, 4, 5', 17: '3',  18: '1, 3',
+          1: 1,  4: 0,  5: 1,  6: 2,  19: 0,  // choice
+        },
+      },
+    };
+
+    // Нормализует строку для сравнения: убирает пробелы вокруг запятых, приводит к нижнему регистру
+    function normalizeAnswer(s) {
+      return String(s).trim().toLowerCase()
+        .replace(/\s*,\s*/g, ',').replace(/\s+/g, ' ');
+    }
+
     function finishExam() {
       clearInterval(timerID);
       closeTaskMap();
       const answeredCount = answers.filter(a => a !== null).length;
 
       // Сохраняем данные для AI-анализа в sessionStorage
+      const correctMap = CORRECT_ANSWERS[EXAM]?.[SUBJECT] || {};
       const examData = {
         exam: EXAM,
         subject: SUBJECT,
-        questions: questions.map((q, i) => ({
-          id:         q.id,
-          type:       q.type,
-          text:       stripHtml(q.text),
-          hint:       q.hint || '',
-          example:    q.example || '',
-          options:    q.options || null,
-          userAnswer: answers[i],
-        })).filter(q => q.userAnswer !== null),
+        questions: questions.map((q, i) => {
+          if (answers[i] === null) return null;
+          const correctVal = correctMap[q.id];
+          let isCorrect = null;
+
+          if (q.type === 'short' && correctVal !== undefined && typeof correctVal === 'string') {
+            isCorrect = normalizeAnswer(answers[i]) === normalizeAnswer(correctVal);
+          } else if (q.type === 'choice' && correctVal !== undefined && typeof correctVal === 'number') {
+            isCorrect = parseInt(answers[i]) === correctVal;
+          }
+
+          return {
+            id:           q.id,
+            type:         q.type,
+            text:         stripHtml(q.text),
+            options:      q.options || null,
+            correctIndex: (q.type === 'choice' && typeof correctVal === 'number') ? correctVal : null,
+            correctAnswer:(q.type === 'short'  && typeof correctVal === 'string') ? correctVal : null,
+            userAnswer:   answers[i],
+            isCorrect,    // null = нужен AI (extended), true/false = проверено локально
+          };
+        }).filter(Boolean),
       };
       sessionStorage.setItem('examData', JSON.stringify(examData));
 
