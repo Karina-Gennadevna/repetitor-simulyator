@@ -311,6 +311,28 @@
       padding: 2px 8px;
       border-radius: 5px;
     }
+    .q-card__context {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--text-soft);
+      white-space: pre-wrap;
+    }
+    .q-card__context-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-accent);
+      margin-bottom: 6px;
+      display: block;
+    }
     .q-card__text {
       font-size: 17px;
       font-weight: 600;
@@ -1240,6 +1262,7 @@
         <div class="q-card__num-pill" id="qNumPill">01</div>
         <span id="qTypeBadge">Краткий ответ</span>
       </div>
+      <div class="q-card__context" id="qContextStem" style="display:none"></div>
       <div class="q-card__text" id="qText">Загрузка...</div>
       <div class="q-card__hint" id="qHint">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -1749,6 +1772,17 @@
       else if (skipped.has(idx))  card.classList.add('skipped');
 
       document.getElementById('qNumPill').textContent  = String(idx + 1).padStart(2, '0');
+
+      // Общий контекстный блок (задания 1–5 математики)
+      const ctxEl = document.getElementById('qContextStem');
+      if (q.contextStem) {
+        ctxEl.style.display = '';
+        ctxEl.innerHTML = '<span class="q-card__context-label">Условие задачи</span>' + escapeHtml(q.contextStem);
+      } else {
+        ctxEl.style.display = 'none';
+        ctxEl.innerHTML = '';
+      }
+
       document.getElementById('qText').innerHTML       = q.text;
       document.getElementById('qHintText').textContent = q.hint;
 
@@ -1997,6 +2031,9 @@
     ───────────────────────────────────── */
     function stripHtml(html) {
       return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     // Правильные ответы: short → строка, choice → индекс варианта

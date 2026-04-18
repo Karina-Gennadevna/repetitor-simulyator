@@ -1,5 +1,5 @@
-import { configs as ogeMathConfigs,   codifiers as ogeMathCodifiers   } from './_configs/oge_math.js';
-import { configs as ogeRusConfigs,    codifiers as ogeRusCodifiers    } from './_configs/oge_russian.js';
+import { configs as ogeMathConfigs,  codifiers as ogeMathCodifiers  } from './_configs/oge_math.js';
+import { configs as ogeRusConfigs,   codifiers as ogeRusCodifiers   } from './_configs/oge_russian.js';
 
 const CONFIG_MAP = {
   oge: {
@@ -8,22 +8,56 @@ const CONFIG_MAP = {
   },
 };
 
+const FORMAT_HINTS = {
+  integer:           'целое число',
+  number:            'число (целое или десятичная дробь)',
+  decimal:           'десятичная дробь (например: 0,25)',
+  digits:            'цифры через запятую (например: 1, 3, 5)',
+  choice:            'выбор из 4 вариантов',
+  word:              'одно слово',
+  words:             'слово или словосочетание',
+  full_solution:     'полное решение с обоснованием каждого шага',
+  proof:             'полное математическое доказательство',
+  graph_construction:'описание построения графика + ответ на дополнительный вопрос',
+  extended:          'развёрнутый ответ',
+};
+
 function buildPrompt(examConfig, codifier, examLabel, subjectLabel) {
+  // Определяем группу shared-context (задания 1–5 для математики)
+  const contextGroups = {};
+  for (const t of examConfig.tasks) {
+    if (t.contextGroup) {
+      if (!contextGroups[t.contextGroup]) contextGroups[t.contextGroup] = [];
+      contextGroups[t.contextGroup].push(t.id);
+    }
+  }
+
+  const contextGroupNote = Object.keys(contextGroups).length
+    ? '\nВАЖНО — ОБЩИЙ КОНТЕКСТ:\n' + Object.entries(contextGroups).map(([grp, ids]) =>
+        `Задания ${ids.join(', ')} должны использовать ОДИН общий контекстный текст (жизненная ситуация: квартира, ремонт, поездка, магазин и т.п.). ` +
+        `Сначала дай поле "contextStem" с описанием ситуации и данными (таблица/схема/текст), ` +
+        `затем в каждом из этих заданий пиши только вопрос — без повтора условия.`
+      ).join('\n')
+    : '';
+
   const specText = examConfig.tasks.map(t => {
     const typeLabel = t.type === 'extended' ? 'развёрнутый ответ'
                     : t.type === 'choice'   ? 'выбор из 4 вариантов'
                     :                         'краткий ответ';
-    const topic = codifier[t.topicCode]?.name ?? t.topicCode;
-    const fmt   = t.answerFormat ? ` Формат ответа: ${t.answerFormat}.` : '';
-    return `Задание ${t.id} (часть ${t.part}, ${typeLabel}, ${t.score} б.): ${topic}.${fmt}`;
+    const topic  = codifier[t.topicCode]?.name ?? t.topicCode;
+    const fmtHint = FORMAT_HINTS[t.answerFormat] ?? t.answerFormat;
+    const ctxNote = t.contextGroup ? ' [часть общего контекстного блока]' : '';
+    return `Задание ${t.id} (часть ${t.part}, ${typeLabel}, ${t.score} б.): ${topic}. Ответ: ${fmtHint}.${ctxNote}`;
   }).join('\n');
 
   return `Ты составляешь уникальный вариант экзамена ${examLabel} по предмету ${subjectLabel} строго по структуре КИМ ФИПИ.
 
-ВАЖНО:
+ПРАВИЛА:
 - Все задания НОВЫЕ, числа и условия случайные — каждый вариант уникален
-- Для математики: все вычисления проверены, ответы точные
-- Для русского: тексты оригинальные, задания корректные
+- Математика: все вычисления проверены, ответы точные
+- Русский язык: тексты оригинальные, задания корректные
+- Нельзя изменять тип или структуру задания
+${contextGroupNote}
 
 СТРУКТУРА ЗАДАНИЙ:
 ${specText}
@@ -34,7 +68,8 @@ ${specText}
     "id": 1,
     "part": 1,
     "type": "short",
-    "text": "Текст задания (можно HTML)",
+    "contextStem": "Только для первого задания группы: полное описание жизненной ситуации с данными",
+    "text": "Вопрос задания (без повтора условия если есть contextStem)",
     "hint": "Подсказка формата ответа",
     "correct": "точный правильный ответ строкой"
   },
@@ -52,13 +87,15 @@ ${specText}
     "part": 2,
     "type": "extended",
     "text": "Текст задания",
-    "hint": "Запишите полное решение с обоснованием"
+    "hint": "Запишите полное решение с обоснованием каждого шага"
   }
 ]
 
-Для русского задания с type="extended" и id=1: добавь поле "audioText" (полный текст изложения 130–150 слов).
-Для choice: только "options" и "correctIndex", поле "correct" не нужно.
-Для extended: поля "correct" и "correctIndex" не нужны.`;
+Правила полей:
+- "contextStem": только у первого задания группы (id=1 для математики), у остальных в группе — отсутствует
+- "choice": только "options" и "correctIndex", поле "correct" не нужно
+- "extended": поля "correct" и "correctIndex" не нужны
+- Для русского задания id=1 (изложение): добавь поле "audioText" с полным текстом 130–150 слов`;
 }
 
 export default async function handler(req, res) {
@@ -109,18 +146,37 @@ export default async function handler(req, res) {
 
     const questions = JSON.parse(match[0]);
 
+    // Если у первого задания контекстного блока есть contextStem —
+    // прокидываем его в поле text всем остальным заданиям группы как prefixContext
+    const stemMap = {};
+    for (const q of questions) {
+      if (q.contextStem) stemMap[q.id] = q.contextStem;
+    }
+    // Ищем задания с общим контекстом и прописываем prefixContext
+    const ctxGroups = examConfig.tasks.reduce((acc, t) => {
+      if (t.contextGroup) { acc[t.id] = t.contextGroup; } return acc;
+    }, {});
+    const groupFirstId = {};
+    for (const t of examConfig.tasks) {
+      if (t.contextGroup && !groupFirstId[t.contextGroup]) groupFirstId[t.contextGroup] = t.id;
+    }
+    for (const q of questions) {
+      const grp = ctxGroups[q.id];
+      if (grp) {
+        const firstId = groupFirstId[grp];
+        if (q.id !== firstId && stemMap[firstId]) {
+          q.contextStem = stemMap[firstId]; // все в группе получают общий контекст
+        }
+      }
+    }
+
     const correctAnswers = {};
     for (const q of questions) {
       if (q.type === 'short'  && q.correct      != null) correctAnswers[q.id] = q.correct;
       if (q.type === 'choice' && q.correctIndex != null) correctAnswers[q.id] = q.correctIndex;
     }
 
-    res.status(200).json({
-      questions,
-      correctAnswers,
-      duration: examConfig.duration,
-      year,
-    });
+    res.status(200).json({ questions, correctAnswers, duration: examConfig.duration, year });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
