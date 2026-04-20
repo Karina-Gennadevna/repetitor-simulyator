@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
       --bg:            #09090F;
@@ -714,6 +715,7 @@
     document.getElementById('mainPage').style.display = 'block';
     buildResults();
     setTimeout(animateBars, 300);
+    saveExamResult();
   }
 
   /* ─────────────────────────────────────
@@ -931,6 +933,63 @@
   function handleRouteClick(i) {
     if (i === 4) { goRetry(); return; }
     goToErrors();
+  }
+
+  /* ─────────────────────────────────────
+     SUPABASE
+  ───────────────────────────────────── */
+  const SB_URL = 'https://ahdxqfqbehsrdgwfpuuh.supabase.co';
+  const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  async function getOrCreateUser() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) return session.user;
+    const { data, error } = await sb.auth.signInAnonymously();
+    if (error) { console.warn('Supabase auth error:', error.message); return null; }
+    return data.user;
+  }
+
+  async function saveExamResult() {
+    try {
+      const user = await getOrCreateUser();
+      if (!user) return;
+
+      const raw = sessionStorage.getItem('examData');
+      const examData = raw ? JSON.parse(raw) : null;
+
+      const { data: sessionRow, error: sessionErr } = await sb
+        .from('exam_sessions')
+        .insert({
+          user_id: user.id,
+          subject: SUBJECT,
+          exam_type: EXAM,
+          score: totalScore,
+          max_score: cfg.maxScore,
+          duration_seconds: T_SPENT,
+        })
+        .select('id')
+        .single();
+
+      if (sessionErr) { console.warn('Session save error:', sessionErr.message); return; }
+
+      if (examData?.questions?.length) {
+        const answers = examData.questions.map(q => ({
+          session_id: sessionRow.id,
+          task_number: q.number ?? q.taskNumber ?? null,
+          task_id: q.id ?? null,
+          user_answer: q.userAnswer != null ? String(q.userAnswer) : null,
+          correct_answer: q.correctAnswer != null ? String(q.correctAnswer) : null,
+          is_correct: q.isCorrect ?? null,
+          points: q.points ?? 0,
+          topic_cluster: q.topicCluster ?? null,
+        }));
+        const { error: answersErr } = await sb.from('exam_answers').insert(answers);
+        if (answersErr) console.warn('Answers save error:', answersErr.message);
+      }
+    } catch (e) {
+      console.warn('saveExamResult failed:', e.message);
+    }
   }
 
   /* ─────────────────────────────────────

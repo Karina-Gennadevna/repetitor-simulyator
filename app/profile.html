@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     /* ─────────────────────────────────────────────
        DESIGN TOKENS
@@ -725,15 +726,15 @@
 
     <!-- ── 2. MAIN KPI CARD ── -->
     <div class="card kpi-main">
-      <div class="card-label">Прогноз результата</div>
+      <div class="card-label">Лучший результат</div>
       <div class="kpi-main__top">
         <div class="kpi-main__left">
-          <div class="kpi-main__score">74–78 баллов</div>
-          <div class="kpi-main__delta">
+          <div class="kpi-main__score" id="kpiScore">—</div>
+          <div class="kpi-main__delta" id="kpiDelta" style="visibility:hidden">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M2 9l4-6 4 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            +6 баллов за неделю
+            <span id="kpiDeltaText"></span>
           </div>
         </div>
         <div class="ring-wrap">
@@ -741,11 +742,11 @@
             <circle class="ring-bg" cx="36" cy="36" r="30"/>
             <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30"/>
           </svg>
-          <div class="ring-label">76%</div>
+          <div class="ring-label" id="ringLabel">—</div>
         </div>
       </div>
       <div class="kpi-main__bar">
-        <div class="kpi-main__bar-fill"></div>
+        <div class="kpi-main__bar-fill" id="kpiBarFill" style="--w:0%"></div>
       </div>
     </div>
 
@@ -803,69 +804,35 @@
     <!-- ── 5. SECONDARY KPI ROW ── -->
     <div class="kpi-row">
       <div class="kpi-cell">
-        <div class="kpi-cell__label">До экзамена</div>
-        <div class="kpi-cell__value">54</div>
-        <div class="kpi-cell__sub">Осталось дней</div>
+        <div class="kpi-cell__label">Попыток</div>
+        <div class="kpi-cell__value" id="statTotal">—</div>
+        <div class="kpi-cell__sub">всего</div>
       </div>
       <div class="kpi-cell">
-        <div class="kpi-cell__label">Закрыто тем</div>
-        <div class="kpi-cell__value">5/12</div>
-        <div class="kpi-cell__sub">42% курса</div>
+        <div class="kpi-cell__label">Средний балл</div>
+        <div class="kpi-cell__value" id="statAvg">—</div>
+        <div class="kpi-cell__sub">из 100%</div>
       </div>
       <div class="kpi-cell">
-        <div class="kpi-cell__label">Серия</div>
-        <div class="kpi-cell__value">4</div>
-        <div class="kpi-cell__sub">дня подряд</div>
+        <div class="kpi-cell__label">Предметов</div>
+        <div class="kpi-cell__value" id="statSubjects">—</div>
+        <div class="kpi-cell__sub">пройдено</div>
       </div>
     </div>
 
-    <!-- ── 6. WEEKLY PLAN ── -->
+    <!-- ── 6. ИСТОРИЯ ── -->
     <div class="card plan-card" style="animation: fadeUp 0.4s ease 0.22s both;">
       <div class="plan-card__header">
-        <span class="plan-card__title">План на неделю</span>
+        <span class="plan-card__title">История попыток</span>
         <div class="plan-card__icon">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M5 1v2M9 1v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <path d="M1 6h12" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M7 1v6l4 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4"/>
           </svg>
         </div>
       </div>
-      <div class="plan-item today" onclick="window.location.href='today.html'">
-        <div class="plan-item__day">Пн</div>
-        <div class="plan-item__name">История XIX века</div>
-        <div class="plan-item__arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-      <div class="plan-item" onclick="showComingSoon()">
-        <div class="plan-item__day">Вт</div>
-        <div class="plan-item__name">Конституционное право</div>
-        <div class="plan-item__arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-      <div class="plan-item" onclick="showComingSoon()">
-        <div class="plan-item__day">Ср</div>
-        <div class="plan-item__name">Мини-тест</div>
-        <div class="plan-item__arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-      <div class="plan-item" onclick="showComingSoon()">
-        <div class="plan-item__day">Чт</div>
-        <div class="plan-item__name">Пробный экзамен</div>
-        <div class="plan-item__arrow">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+      <div id="historyList">
+        <div style="padding:20px;text-align:center;font-size:13px;color:var(--text-muted);">Загрузка…</div>
       </div>
     </div>
 
@@ -980,16 +947,114 @@
   <div id="toast" style="position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);max-width:320px;width:calc(100% - 40px);background:#161922;border:1px solid rgba(255,255,255,0.11);border-radius:14px;padding:14px 18px;font-size:13px;font-weight:500;color:#94A3B8;text-align:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;backdrop-filter:blur(12px);"></div>
 
   <script>
-    /* ── Progress ring ── */
-    (function () {
-      const circumference = 2 * Math.PI * 30; // 188.5
+    /* ── Supabase ── */
+    const SB_URL = 'https://ahdxqfqbehsrdgwfpuuh.supabase.co';
+    const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    const SUBJECT_LABELS = { math: 'Математика', russian: 'Русский язык' };
+    const EXAM_LABELS    = { oge: 'ОГЭ', ege: 'ЕГЭ' };
+
+    function setRing(pct) {
+      const circumference = 2 * Math.PI * 30;
       const fill = document.getElementById('ringFill');
       fill.style.strokeDasharray = circumference;
       fill.style.strokeDashoffset = circumference;
       setTimeout(() => {
-        fill.style.strokeDashoffset = circumference * (1 - 0.76); // 76%
+        fill.style.strokeDashoffset = circumference * (1 - pct / 100);
       }, 300);
-    })();
+      document.getElementById('ringLabel').textContent = pct + '%';
+    }
+
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    }
+
+    function renderHistory(sessions) {
+      const list = document.getElementById('historyList');
+      if (!sessions.length) {
+        list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-muted);">Пока нет попыток. Пройди первый экзамен!</div>';
+        return;
+      }
+      list.innerHTML = sessions.map(s => {
+        const pct  = Math.round((s.score / s.max_score) * 100);
+        const subj = SUBJECT_LABELS[s.subject] || s.subject;
+        const exam = EXAM_LABELS[s.exam_type]  || s.exam_type;
+        const color = pct >= 70 ? 'var(--success)' : pct >= 45 ? 'var(--warning)' : 'var(--danger)';
+        return `
+          <div class="plan-item">
+            <div class="plan-item__day" style="background:rgba(91,108,249,0.08);border-color:var(--accent-border);color:var(--text-accent);font-size:9px;font-weight:700;letter-spacing:0.04em">
+              ${fmtDate(s.created_at)}
+            </div>
+            <div class="plan-item__name">${exam} · ${subj}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${color};flex-shrink:0">
+              ${s.score}/${s.max_score}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function loadProfile() {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          document.getElementById('historyList').innerHTML =
+            '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-muted);">Пройди экзамен — история появится здесь.</div>';
+          document.getElementById('statTotal').textContent    = '0';
+          document.getElementById('statAvg').textContent      = '—';
+          document.getElementById('statSubjects').textContent = '0';
+          document.getElementById('kpiScore').textContent     = '—';
+          setRing(0);
+          return;
+        }
+
+        const { data: sessions, error } = await sb
+          .from('exam_sessions')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+
+        renderHistory(sessions);
+
+        if (!sessions.length) {
+          document.getElementById('statTotal').textContent    = '0';
+          document.getElementById('statAvg').textContent      = '—';
+          document.getElementById('statSubjects').textContent = '0';
+          document.getElementById('kpiScore').textContent     = '—';
+          setRing(0);
+          return;
+        }
+
+        // Stats
+        const total    = sessions.length;
+        const avgPct   = Math.round(sessions.reduce((sum, s) => sum + (s.score / s.max_score) * 100, 0) / total);
+        const subjects = new Set(sessions.map(s => s.subject + s.exam_type)).size;
+        const best     = sessions.reduce((best, s) => (s.score / s.max_score) > (best.score / best.max_score) ? s : best, sessions[0]);
+        const bestPct  = Math.round((best.score / best.max_score) * 100);
+        const bestSubj = (EXAM_LABELS[best.exam_type] || best.exam_type) + ' · ' + (SUBJECT_LABELS[best.subject] || best.subject);
+
+        document.getElementById('statTotal').textContent    = total;
+        document.getElementById('statAvg').textContent      = avgPct + '%';
+        document.getElementById('statSubjects').textContent = subjects;
+        document.getElementById('kpiScore').textContent     = best.score + ' / ' + best.max_score;
+
+        const delta = document.getElementById('kpiDelta');
+        delta.style.visibility = 'visible';
+        document.getElementById('kpiDeltaText').textContent = bestSubj;
+
+        setRing(bestPct);
+        document.getElementById('kpiBarFill').style.setProperty('--w', bestPct + '%');
+
+      } catch (e) {
+        console.warn('loadProfile error:', e.message);
+        document.getElementById('historyList').innerHTML =
+          '<div style="padding:20px;text-align:center;font-size:13px;color:var(--danger);">Ошибка загрузки данных</div>';
+      }
+    }
 
     /* ── Toast ── */
     let _t;
@@ -1006,6 +1071,8 @@
         t.style.pointerEvents = 'none';
       }, 2400);
     }
+
+    loadProfile();
   </script>
 
 </body>
