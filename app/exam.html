@@ -1764,7 +1764,8 @@
       current = idx;
       const q = questions[idx];
 
-      // Сбросить аудио при смене вопроса
+      // Сбросить аудио при смене вопроса — отменяем незавершённую загрузку
+      if (audioPrefetchCtrl) { audioPrefetchCtrl.abort(); audioPrefetchCtrl = null; }
       if (audioEl) { audioEl.pause(); audioEl.src = ''; }
       if (audioBlobUrl) { URL.revokeObjectURL(audioBlobUrl); audioBlobUrl = null; }
       audioPrefetch   = null;
@@ -2222,6 +2223,7 @@
     let audioBlobUrl     = null;  // кэшированный Blob URL
     let audioPrefetch    = null;  // Promise фоновой загрузки
     let audioUnlocked    = false; // iOS unlock flag
+    let audioPrefetchCtrl = null; // AbortController для отмены загрузки при смене вопроса
 
     // iOS: разблокируем аудио на первом касании экрана — ДО нажатия кнопки.
     // После этого play() работает даже вне синхронного обработчика жеста.
@@ -2244,19 +2246,20 @@
 
     function prefetchAudio(text) {
       if (audioPrefetch) return;
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 20000);
+      audioPrefetchCtrl = new AbortController();
+      const timer = setTimeout(() => audioPrefetchCtrl?.abort(), 20000);
       audioPrefetch = fetch(TTS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
-        signal: ctrl.signal,
+        signal: audioPrefetchCtrl.signal,
       })
         .then(r => { clearTimeout(timer); return r.ok ? r.blob() : Promise.reject('Сервер вернул ' + r.status); })
-        .then(blob => { audioBlobUrl = URL.createObjectURL(blob); })
+        .then(blob => { audioBlobUrl = URL.createObjectURL(blob); audioPrefetchCtrl = null; })
         .catch(err => {
           clearTimeout(timer);
           audioPrefetch = null;
+          audioPrefetchCtrl = null;
           const msg = err && err.name === 'AbortError' ? 'Превышено время ожидания' : (err || 'Ошибка загрузки');
           throw new Error(String(msg));
         });
