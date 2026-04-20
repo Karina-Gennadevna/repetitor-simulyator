@@ -343,16 +343,21 @@
     let countdownDone  = false;
 
     async function generateQuestions() {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 14000);
       try {
         const resp = await fetch('/api/generate', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ exam, subject }),
+          signal:  ctrl.signal,
         });
+        clearTimeout(timer);
         if (!resp.ok) throw new Error('generate failed');
         const data = await resp.json();
         sessionStorage.setItem('generatedExam', JSON.stringify(data));
       } catch (e) {
+        clearTimeout(timer);
         console.warn('Generation failed, will use static questions:', e);
         sessionStorage.removeItem('generatedExam');
       }
