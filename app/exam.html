@@ -1214,6 +1214,35 @@
       line-height: 1.55;
     }
     .audio-warn strong { color: var(--warning); font-weight: 700; }
+    .audio-fallback-notice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: var(--radius-md);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .audio-fallback-notice__icon { font-size: 14px; flex-shrink: 0; }
+    .audio-fallback-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+    }
+    .audio-fallback-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
     .audio-no-support {
       padding: 12px 14px;
       background: var(--warning-dim);
@@ -2312,6 +2341,25 @@
       updateAudioUI();
     }
 
+    function showAudioFallback(text) {
+      const el = document.getElementById('audioPlayerContainer');
+      if (!el) return;
+      el.innerHTML = `
+        <div class="audio-card">
+          <div class="audio-badge">
+            <div class="audio-badge__dot" style="background:var(--warning)"></div>
+            Текст для изложения · Задание 1
+          </div>
+          <div class="audio-fallback-notice">
+            <span class="audio-fallback-notice__icon">⚠️</span>
+            <span>Аудио недоступно — прочитайте текст самостоятельно. На реальном экзамене текст читает учитель.</span>
+          </div>
+          <div class="audio-fallback-text">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          <div class="audio-fallback-hint">Прочитайте текст 1–2 раза, выделяя три микротемы. Затем приступайте к написанию изложения.</div>
+        </div>`;
+    }
+
+
     function toggleAudio() {
       if (audioIsSpeaking) { stopAudio(); } else { playAudio(); }
     }
@@ -2334,8 +2382,7 @@
         try {
           await audioPrefetch;
         } catch (fetchErr) {
-          if (btn) btn.disabled = false;
-          setAudioStatus('Ошибка: ' + (fetchErr.message || 'не удалось загрузить'), '');
+          showAudioFallback(q.audioText);
           return;
         }
       }
@@ -2364,9 +2411,8 @@
 
       } catch (e) {
         audioIsSpeaking = false;
-        if (btn) btn.disabled = false;
-        setAudioStatus('Ошибка: ' + (e.message || String(e)), '');
         console.error('Audio error:', e);
+        showAudioFallback(q.audioText);
       }
     }
 
