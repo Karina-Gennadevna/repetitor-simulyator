@@ -2243,15 +2243,23 @@
     document.addEventListener('touchstart', unlockAudioEarly, { once: true, passive: true });
 
     function prefetchAudio(text) {
-      // Начинаем загрузку заранее, пока пользователь читает задание
       if (audioPrefetch) return;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 20000);
       audioPrefetch = fetch(TTS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
-      }).then(r => r.ok ? r.blob() : Promise.reject('API ' + r.status))
+        signal: ctrl.signal,
+      })
+        .then(r => { clearTimeout(timer); return r.ok ? r.blob() : Promise.reject('Сервер вернул ' + r.status); })
         .then(blob => { audioBlobUrl = URL.createObjectURL(blob); })
-        .catch(() => { audioPrefetch = null; }); // при ошибке — повторим при нажатии
+        .catch(err => {
+          clearTimeout(timer);
+          audioPrefetch = null;
+          const msg = err && err.name === 'AbortError' ? 'Превышено время ожидания' : (err || 'Ошибка загрузки');
+          throw new Error(String(msg));
+        });
     }
 
     function renderAudioPlayer(q) {
@@ -2320,7 +2328,13 @@
       if (!audioBlobUrl) {
         setAudioStatus('Загрузка аудио...', 'active');
         if (!audioPrefetch) prefetchAudio(q.audioText);
-        await audioPrefetch;
+        try {
+          await audioPrefetch;
+        } catch (fetchErr) {
+          if (btn) btn.disabled = false;
+          setAudioStatus('Ошибка: ' + (fetchErr.message || 'не удалось загрузить'), '');
+          return;
+        }
       }
 
       try {
