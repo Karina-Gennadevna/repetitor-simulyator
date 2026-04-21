@@ -546,129 +546,50 @@
 
     <!-- ── HEADER ── -->
     <header class="page-header">
-      <div class="page-header__day">Сегодня, вторник</div>
-      <div class="page-header__title">План на сегодня</div>
-      <div class="page-header__sub">
-        До цели 80+ осталось <strong>6 баллов</strong>
-      </div>
+      <div class="page-header__day" id="headerDay">Загрузка...</div>
+      <div class="page-header__title" id="headerTitle">Добрый день!</div>
+      <div class="page-header__sub" id="headerSub">Готовься к экзамену</div>
     </header>
 
-    <!-- ── PROGRESS CARD ── -->
-    <div class="progress-card">
-      <div class="progress-card__label">Прогресс дня</div>
-      <div class="progress-card__row">
-        <span class="progress-card__done">Выполнено 1 из 4</span>
-        <span class="progress-card__pct">25%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-bar__fill"></div>
-      </div>
-    </div>
-
-    <!-- ── MAIN TASK CARD ── -->
-    <div class="main-task-card" onclick="showToast('Мини-тест — скоро!')">
-      <div class="main-task-card__dot"></div>
-      <div class="main-task-card__label">Главное задание дня</div>
-      <div class="main-task-card__row">
-        <div class="main-task-card__title">Мини-тест — 5 вопросов</div>
-        <div class="main-task-card__circle"></div>
-      </div>
-      <div class="main-task-card__meta">
-        <div class="meta-badge">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1l1.2 3.6H11L8.4 6.8l1 3.1L6 8l-3.4 1.9 1-3.1L1 4.6h3.8z" fill="rgba(255,255,255,0.7)"/>
-          </svg>
-          ~5 минут
+    <!-- ── LAST EXAM CARD ── -->
+    <div id="lastExamCard" style="display:none">
+      <div class="progress-card">
+        <div class="progress-card__label">Последний экзамен</div>
+        <div class="progress-card__row">
+          <span class="progress-card__done" id="lastExamLabel">—</span>
+          <span class="progress-card__pct" id="lastExamScore">—</span>
         </div>
-        <div class="meta-action" onclick="event.stopPropagation(); showToast('Мини-тест — скоро!')">
-          Приступить
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M4 7h6M8 5l2 2-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" id="lastExamBar" style="--w:0%;animation:none;width:0%"></div>
         </div>
       </div>
     </div>
 
-    <!-- ── ОСТАЛЬНЫЕ ШАГИ ── -->
-    <div class="steps-label">Остальные шаги</div>
-    <div class="steps-list">
-
-      <!-- Done -->
-      <div class="step-item">
-        <div class="step-stem">
-          <div class="step-dot done">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M2 5l2.5 2.5L8 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-content">
-          <div class="step-body">
-            <div class="step-name done">Урок: История XIX века</div>
-            <div class="step-time">15 минут</div>
-          </div>
-          <div class="step-arrow">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
+    <!-- ── STATS CARD ── -->
+    <div id="statsCard" style="display:none">
+      <div class="motivation-card">
+        <div class="motivation-icon">📊</div>
+        <div class="motivation-body">
+          <div class="motivation-text" id="statsText">—</div>
+          <div class="motivation-sub" id="statsSubText">СТАТИСТИКА</div>
         </div>
       </div>
-
-      <!-- Pending -->
-      <div class="step-item" onclick="window.location.href='error-detail.html'">
-        <div class="step-stem">
-          <div class="step-dot"></div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-content">
-          <div class="step-body">
-            <div class="step-name">Повтор ошибок</div>
-            <div class="step-time">10 минут</div>
-          </div>
-          <div class="step-arrow">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pending -->
-      <div class="step-item" onclick="showToast('Вопрос дня — скоро!')">
-        <div class="step-stem">
-          <div class="step-dot"></div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-content">
-          <div class="step-body">
-            <div class="step-name">Вопрос дня</div>
-          </div>
-          <div class="step-arrow">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ── MOTIVATION CARD ── -->
-    <div class="motivation-card">
-      <div class="motivation-icon">⚡</div>
-      <div class="motivation-body">
-        <div class="motivation-text">
-          После выполнения дня прогноз: <strong>76–80 баллов</strong>
+    <!-- ── EMPTY STATE ── -->
+    <div id="emptyState">
+      <div class="motivation-card">
+        <div class="motivation-icon">🎯</div>
+        <div class="motivation-body">
+          <div class="motivation-text">Пройди первый экзамен, чтобы увидеть свой прогресс</div>
+          <div class="motivation-sub">ОГЭ · МАТЕМАТИКА ИЛИ РУССКИЙ ЯЗЫК</div>
         </div>
-        <div class="motivation-sub">Мотивация +15%</div>
       </div>
     </div>
 
     <!-- ── CTA ── -->
-    <a href="error-detail.html" class="btn-cta">
-      Начать первое задание
+    <a href="onboarding.html" class="btn-cta">
+      Начать экзамен
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -721,20 +642,63 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    /* ── AUTH GUARD ── */
-    const _sbG = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
-    _sbG.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user || session.user.is_anonymous) window.location.replace('auth.html');
-    });
+    const SB_URL = 'https://ahdxqfqbehsrdgwfpuuh.supabase.co';
+    const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let _t;
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg || 'Скоро — в следующей версии!';
-      t.classList.add('show');
-      clearTimeout(_t);
-      _t = setTimeout(() => t.classList.remove('show'), 2400);
+    const DAYS = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+    const SUBJECTS = { math: 'Математика', russian: 'Русский язык' };
+    const EXAMS = { oge: 'ОГЭ', ege: 'ЕГЭ' };
+
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user || session.user.is_anonymous) {
+        window.location.replace('auth.html'); return;
+      }
+
+      const user = session.user;
+      const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || 'Ученик';
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+      const dayName = DAYS[new Date().getDay()];
+
+      document.getElementById('headerDay').textContent = `Сегодня, ${dayName.toLowerCase()}`;
+      document.getElementById('headerTitle').textContent = `${greeting}, ${firstName}!`;
+
+      // Загружаем последние сессии из Supabase
+      const { data: sessions } = await sb
+        .from('exam_sessions')
+        .select('subject, exam_type, score, max_score, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (sessions?.length) {
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Последний экзамен
+        const last = sessions[0];
+        const pct = last.max_score > 0 ? Math.round(last.score / last.max_score * 100) : 0;
+        const subjectLabel = SUBJECTS[last.subject] || last.subject;
+        const examLabel = EXAMS[last.exam_type] || last.exam_type;
+        document.getElementById('lastExamLabel').textContent = `${examLabel} · ${subjectLabel}`;
+        document.getElementById('lastExamScore').textContent = `${last.score}/${last.max_score}`;
+        const bar = document.getElementById('lastExamBar');
+        bar.style.setProperty('--w', pct + '%');
+        bar.style.width = pct + '%';
+        document.getElementById('lastExamCard').style.display = '';
+
+        // Статистика
+        const total = sessions.length;
+        const avgScore = Math.round(sessions.reduce((s, e) => s + (e.max_score > 0 ? e.score / e.max_score * 100 : 0), 0) / total);
+        document.getElementById('statsText').innerHTML = `Попыток: <strong>${total}</strong> · Средний результат: <strong>${avgScore}%</strong>`;
+        document.getElementById('statsSubText').textContent = 'МОЯ СТАТИСТИКА';
+        document.getElementById('statsCard').style.display = '';
+        document.getElementById('headerSub').textContent = 'Продолжай готовиться к экзамену';
+      }
     }
+
+    init();
   </script>
 
 </body>
