@@ -432,10 +432,78 @@
     .timer-badge.urgent { animation: timerPulse 0.8s ease-in-out infinite; }
   </style>
 </head>
+<style>
+  .coming-soon-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(9, 9, 15, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 32px;
+    text-align: center;
+  }
+  .coming-soon-overlay__badge {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(91,108,249,0.15);
+    border: 1px solid rgba(91,108,249,0.35);
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin-bottom: 20px;
+  }
+  .coming-soon-overlay__icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+  .coming-soon-overlay__title {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #F1F5F9;
+    margin-bottom: 10px;
+  }
+  .coming-soon-overlay__sub {
+    font-size: 14px;
+    color: #94A3B8;
+    line-height: 1.6;
+    max-width: 280px;
+    margin-bottom: 32px;
+  }
+  .coming-soon-overlay__btn {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #5B6CF9, #8B5CF6);
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    box-shadow: 0 4px 20px rgba(91,108,249,0.4);
+  }
+</style>
 <body>
 <div class="screen">
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
+
+  <!-- Coming soon overlay -->
+  <div class="coming-soon-overlay">
+    <div class="coming-soon-overlay__badge">Скоро</div>
+    <div class="coming-soon-overlay__icon">🏆</div>
+    <div class="coming-soon-overlay__title">Вопрос дня</div>
+    <div class="coming-soon-overlay__sub">Ежедневные вопросы, серии и рейтинг появятся в следующем обновлении</div>
+    <button class="coming-soon-overlay__btn" onclick="history.back()">← Назад</button>
+  </div>
 
   <!-- Header -->
   <div class="header anim d1">
@@ -647,8 +715,8 @@
     setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 2500);
   }
 
-  // Start timer on load
-  window.addEventListener('DOMContentLoaded', () => { startTimer(); });
+  // Таймер не запускаем — страница показывает "скоро"
+  // window.addEventListener('DOMContentLoaded', () => { startTimer(); });
 </script>
 </body>
 </html>
