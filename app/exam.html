@@ -1844,9 +1844,14 @@
 
       // Общий контекстный блок (задания 1–5 математики)
       const ctxEl = document.getElementById('qContextStem');
+      // Читаемый текст для русского языка (задания 2–13)
+      const readingTextGlobal = questions.find(qq => qq.readingText)?.readingText || null;
       if (q.contextStem) {
         ctxEl.style.display = '';
         ctxEl.innerHTML = '<span class="q-card__context-label">Условие задачи</span>' + escapeHtml(q.contextStem);
+      } else if (SUBJECT === 'russian' && q.id >= 2 && readingTextGlobal) {
+        ctxEl.style.display = '';
+        ctxEl.innerHTML = '<span class="q-card__context-label">Читаемый текст</span>' + escapeHtml(readingTextGlobal);
       } else {
         ctxEl.style.display = 'none';
         ctxEl.innerHTML = '';
