@@ -358,7 +358,7 @@
 
     // Если email подтверждение отключено в Supabase — сессия уже есть
     if (signUpData?.session) {
-      window.location.replace('today.html');
+      window.location.replace('onboarding.html');
       return;
     }
 
@@ -367,7 +367,7 @@
     setLoading('btnRegister', false);
 
     if (!loginError) {
-      window.location.replace('today.html');
+      window.location.replace('onboarding.html');
       return;
     }
 
