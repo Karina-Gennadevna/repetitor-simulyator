@@ -1912,7 +1912,7 @@
                 </svg>
               </button>
             </div>
-            <div class="answer-example">Например: <span>${q.example || '—'}</span></div>
+            <div class="answer-example">Например: <span>${q.example || q.hint?.split('.')[0] || '—'}</span></div>
           </div>`;
 
         const input = document.getElementById('answerInput');
