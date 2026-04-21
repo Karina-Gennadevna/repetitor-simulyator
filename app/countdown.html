@@ -353,7 +353,7 @@
 
     async function generateQuestions() {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 25000);
+      const timer = setTimeout(() => ctrl.abort(), 40000);
       try {
         const resp = await fetch('/api/generate', {
           method:  'POST',
