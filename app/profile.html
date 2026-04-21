@@ -719,9 +719,12 @@
 
     <!-- ── 1. HEADER ── -->
     <header class="page-header">
-      <div class="page-header__greeting">Добро пожаловать, Алина</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="page-header__greeting" id="userGreeting">Загрузка…</div>
+        <button onclick="handleLogout()" style="font-size:12px;font-weight:600;color:var(--text-muted);padding:5px 10px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.color='var(--danger)';this.style.borderColor='var(--danger-border)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'">Выйти</button>
+      </div>
       <div class="page-header__title">Твой прогресс</div>
-      <div class="page-header__sub">Подготовка к ОГЭ и ЕГЭ под контролем</div>
+      <div class="page-header__sub" id="userEmail">Подготовка к ОГЭ и ЕГЭ под контролем</div>
     </header>
 
     <!-- ── 2. MAIN KPI CARD ── -->
@@ -947,6 +950,12 @@
   <div id="toast" style="position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);max-width:320px;width:calc(100% - 40px);background:#161922;border:1px solid rgba(255,255,255,0.11);border-radius:14px;padding:14px 18px;font-size:13px;font-weight:500;color:#94A3B8;text-align:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;backdrop-filter:blur(12px);"></div>
 
   <script>
+    /* ── AUTH GUARD ── */
+    const _sbG = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
+    _sbG.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user || session.user.is_anonymous) window.location.replace('auth.html');
+    });
+
     /* ── Supabase ── */
     const SB_URL = 'https://ahdxqfqbehsrdgwfpuuh.supabase.co';
     const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
@@ -998,6 +1007,14 @@
     async function loadProfile() {
       try {
         const { data: { session } } = await sb.auth.getSession();
+
+        if (session?.user) {
+          const meta = session.user.user_metadata || {};
+          const name = meta.full_name || meta.first_name || session.user.email?.split('@')[0] || 'Ученик';
+          document.getElementById('userGreeting').textContent = 'Привет, ' + name;
+          document.getElementById('userEmail').textContent    = session.user.email || '';
+        }
+
         if (!session) {
           document.getElementById('historyList').innerHTML =
             '<div style="padding:20px;text-align:center;font-size:13px;color:var(--text-muted);">Пройди экзамен — история появится здесь.</div>';
@@ -1070,6 +1087,11 @@
         t.style.transform = 'translateX(-50%) translateY(20px)';
         t.style.pointerEvents = 'none';
       }, 2400);
+    }
+
+    async function handleLogout() {
+      await sb.auth.signOut();
+      window.location.replace('auth.html');
     }
 
     loadProfile();

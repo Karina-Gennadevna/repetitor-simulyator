@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     /* ─────────────────────────────────────────
        DESIGN TOKENS
@@ -714,6 +715,12 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    /* ── AUTH GUARD ── */
+    const _sbG = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
+    _sbG.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user || session.user.is_anonymous) window.location.replace('auth.html');
+    });
+
     let _t;
     function showToast(msg) {
       const t = document.getElementById('toast');

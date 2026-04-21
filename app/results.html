@@ -936,23 +936,24 @@
   }
 
   /* ─────────────────────────────────────
+     AUTH GUARD
+  ───────────────────────────────────── */
+  const _sbG = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
+  _sbG.auth.getSession().then(({ data: { session } }) => {
+    if (!session?.user || session.user.is_anonymous) window.location.replace('auth.html');
+  });
+
+  /* ─────────────────────────────────────
      SUPABASE
   ───────────────────────────────────── */
   const SB_URL = 'https://ahdxqfqbehsrdgwfpuuh.supabase.co';
   const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
   const sb = supabase.createClient(SB_URL, SB_KEY);
 
-  async function getOrCreateUser() {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) return session.user;
-    const { data, error } = await sb.auth.signInAnonymously();
-    if (error) { console.warn('Supabase auth error:', error.message); return null; }
-    return data.user;
-  }
-
   async function saveExamResult() {
     try {
-      const user = await getOrCreateUser();
+      const { data: { session } } = await sb.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const raw = sessionStorage.getItem('examData');
