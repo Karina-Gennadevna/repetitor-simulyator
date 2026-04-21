@@ -760,48 +760,22 @@
     </div>
 
     <!-- ── 3. CHART CARD ── -->
-    <div class="card chart-card">
+    <div class="card chart-card" id="chartCard">
       <div class="section-title" style="margin-bottom:4px;">
         <span class="section-title__text">Рост результата</span>
-        <span class="section-title__meta">За 4 недели</span>
+        <span class="section-title__meta" id="chartMeta">За попытки</span>
       </div>
-      <div class="chart-wrap">
-        <svg viewBox="0 0 320 90" preserveAspectRatio="none" id="chartSvg">
-          <!-- Grid lines -->
-          <line x1="0" y1="72" x2="320" y2="72" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="48" x2="320" y2="48" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="24" x2="320" y2="24" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <!-- Area fill -->
-          <path d="M0 72 L106 52 L213 38 L320 14 L320 88 L0 88 Z" fill="url(#chartAreaGrad)"/>
-          <!-- Line -->
-          <path id="chartLine" d="M0 72 L106 52 L213 38 L320 14" fill="none" stroke="url(#chartGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- Dots -->
-          <circle cx="0"   cy="72" r="4" fill="#5B6CF9" stroke="#09090F" stroke-width="2"/>
-          <circle cx="106" cy="52" r="4" fill="#6D74F8" stroke="#09090F" stroke-width="2"/>
-          <circle cx="213" cy="38" r="4" fill="#7C68F7" stroke="#09090F" stroke-width="2"/>
-          <circle cx="320" cy="14" r="5" fill="#8B5CF6" stroke="#09090F" stroke-width="2.5"/>
-        </svg>
-      </div>
-      <div class="chart-labels">
-        <span>68</span>
-        <span>72</span>
-        <span>74</span>
-        <span>78</span>
-      </div>
-      <div class="chart-week-labels">
-        <span>Нед 1</span>
-        <span>Нед 2</span>
-        <span>Нед 3</span>
-        <span>Нед 4</span>
+      <div id="chartBody">
+        <div style="padding:24px 0;text-align:center;font-size:13px;color:var(--text-muted);">Пройди 2+ экзамена — появится график роста</div>
       </div>
     </div>
 
     <!-- ── 4. EXAM READINESS CARD ── -->
-    <div class="card readiness-card">
+    <div class="card readiness-card" id="readinessCard" style="display:none">
       <div class="readiness-card__left">
-        <div class="card-label" style="margin-bottom:6px;">Готовность к экзамену</div>
-        <div class="readiness-card__value">76%</div>
-        <div class="readiness-card__helper">прогноз по текущему темпу подготовки</div>
+        <div class="card-label" style="margin-bottom:6px;">Средний результат</div>
+        <div class="readiness-card__value" id="readinessPct">—</div>
+        <div class="readiness-card__helper">среднее по всем твоим попыткам</div>
       </div>
       <div class="readiness-icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -846,60 +820,19 @@
     </div>
 
     <!-- ── 7. ACHIEVEMENTS ── -->
-    <div class="section-title" style="animation: fadeUp 0.4s ease 0.26s both;">
-      <span class="section-title__text">Последние достижения</span>
-    </div>
-    <div class="achievements-scroll">
-      <div class="achievement-card">
-        <div class="achievement-card__icon green">✓</div>
-        <div class="achievement-card__label">Достижение</div>
-        <div class="achievement-card__text">История XIX века завершена</div>
+    <div id="achievementsSection" style="display:none">
+      <div class="section-title" style="animation: fadeUp 0.4s ease 0.26s both;">
+        <span class="section-title__text">Достижения</span>
       </div>
-      <div class="achievement-card">
-        <div class="achievement-card__icon blue">↑</div>
-        <div class="achievement-card__label">Достижение</div>
-        <div class="achievement-card__text">+12 баллов к тесту</div>
-      </div>
-      <div class="achievement-card">
-        <div class="achievement-card__icon orange">🔥</div>
-        <div class="achievement-card__label">Достижение</div>
-        <div class="achievement-card__text">4 дня подряд занятий</div>
-      </div>
+      <div class="achievements-scroll" id="achievementsList"></div>
     </div>
 
-    <!-- ── 8. RISK ZONES ── -->
-    <div class="card risk-card" style="animation: fadeUp 0.4s ease 0.30s both;">
-      <div class="risk-card__header">
-        <span class="risk-card__title">Требует внимания</span>
-        <div class="risk-card__warning">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path d="M5 3.5v2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-            <circle cx="5" cy="7.5" r="0.6" fill="currentColor"/>
-          </svg>
-        </div>
-      </div>
-      <div class="risk-item">
-        <div class="risk-item__body">
-          <div class="risk-item__name">Конституционное право</div>
-          <div class="risk-item__sub">Низкий процент верных ответов</div>
-        </div>
-        <div class="risk-badge high">Высокий риск</div>
-      </div>
-      <div class="risk-item">
-        <div class="risk-item__body">
-          <div class="risk-item__name">Часть 2: развёрнутые ответы</div>
-          <div class="risk-item__sub">Требуется практика оформления</div>
-        </div>
-        <div class="risk-badge mid">Средний</div>
-      </div>
-    </div>
-
-    <!-- ── 9. MOTIVATION CARD ── -->
-    <div class="card motivation-card" onclick="showComingSoon()">
-      <div class="motivation-card__icon">🏆</div>
+    <!-- ── 8. MOTIVATION CARD ── -->
+    <div class="card motivation-card" id="motivationCard" style="display:none" onclick="window.location.href='onboarding.html'">
+      <div class="motivation-card__icon">🚀</div>
       <div class="motivation-card__body">
-        <div class="motivation-card__title">До цели 80+</div>
-        <div class="motivation-card__sub">Осталось всего 6 баллов</div>
+        <div class="motivation-card__title" id="motivationTitle">Продолжай практику</div>
+        <div class="motivation-card__sub" id="motivationSub">Каждая попытка улучшает результат</div>
       </div>
       <div class="motivation-card__arrow">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -1010,6 +943,123 @@
       }).join('');
     }
 
+    function buildChart(sessions) {
+      if (sessions.length < 2) return;
+
+      // Group by week (Mon start)
+      const weekMap = new Map();
+      for (const s of sessions) {
+        const d = new Date(s.created_at);
+        const day = d.getDay();
+        const diff = (day === 0 ? -6 : 1) - day;
+        const mon = new Date(d);
+        mon.setDate(d.getDate() + diff);
+        mon.setHours(0,0,0,0);
+        const key = mon.getTime();
+        if (!weekMap.has(key)) weekMap.set(key, { pcts: [], label: mon });
+        weekMap.get(key).pcts.push((s.score / s.max_score) * 100);
+      }
+
+      const weeks = [...weekMap.entries()]
+        .sort(([a],[b]) => a - b)
+        .slice(-6)
+        .map(([,v]) => ({
+          avg: Math.round(v.pcts.reduce((a,b) => a+b, 0) / v.pcts.length),
+          label: v.label.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+        }));
+
+      if (weeks.length < 2) return;
+
+      document.getElementById('chartMeta').textContent = 'За ' + weeks.length + ' нед.';
+
+      const W = 320, H = 88, PAD = 8;
+      const maxV = Math.max(...weeks.map(w => w.avg));
+      const minV = Math.min(...weeks.map(w => w.avg));
+      const range = Math.max(maxV - minV, 10);
+
+      const pts = weeks.map((w, i) => ({
+        x: (i / (weeks.length - 1)) * W,
+        y: H - PAD - ((w.avg - minV) / range) * (H - 2 * PAD),
+        pct: w.avg,
+        label: w.label
+      }));
+
+      const lineD = pts.map((p, i) => (i ? `L${p.x.toFixed(1)} ${p.y.toFixed(1)}` : `M${p.x.toFixed(1)} ${p.y.toFixed(1)}`)).join(' ');
+      const areaD = lineD + ` L${pts[pts.length-1].x} ${H} L0 ${H} Z`;
+
+      const dots = pts.map((p, i) => {
+        const last = i === pts.length - 1;
+        return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${last?5:4}" fill="${last?'#8B5CF6':'#5B6CF9'}" stroke="#09090F" stroke-width="${last?'2.5':'2'}"/>`;
+      }).join('');
+
+      const scoreLabels = pts.map(p => `<span>${p.pct}%</span>`).join('');
+      const weekLabels  = pts.map(p => `<span>${p.label}</span>`).join('');
+
+      document.getElementById('chartBody').innerHTML = `
+        <div class="chart-wrap">
+          <svg viewBox="0 0 320 88" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="cAreaG" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#5B6CF9" stop-opacity="0.22"/>
+                <stop offset="100%" stop-color="#5B6CF9" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="66" x2="320" y2="66" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="44" x2="320" y2="44" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="22" x2="320" y2="22" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <path d="${areaD}" fill="url(#cAreaG)"/>
+            <path d="${lineD}" fill="none" stroke="url(#chartGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            ${dots}
+          </svg>
+        </div>
+        <div class="chart-labels">${scoreLabels}</div>
+        <div class="chart-week-labels">${weekLabels}</div>`;
+    }
+
+    function buildAchievements(sessions, total, avgPct, bestPct) {
+      const earned = [];
+
+      if (total >= 1)  earned.push({ icon: '✓', color: 'green', label: 'Первый шаг', text: 'Первый экзамен пройден' });
+      if (total >= 5)  earned.push({ icon: '5', color: 'blue',  label: 'Практик',    text: '5 попыток выполнено' });
+      if (total >= 10) earned.push({ icon: '★', color: 'orange',label: 'Упорный',    text: '10 экзаменов позади' });
+      if (avgPct >= 60) earned.push({ icon: '↑', color: 'blue', label: 'Прогресс',   text: 'Средний балл выше 60%' });
+      if (avgPct >= 75) earned.push({ icon: '⚡', color: 'orange',label: 'Мастер',   text: 'Средний балл выше 75%' });
+      if (bestPct >= 80) earned.push({ icon: '🏆', color: 'orange', label: 'Топ',    text: 'Лучший результат 80%+' });
+
+      if (!earned.length) return;
+
+      document.getElementById('achievementsSection').style.display = '';
+      document.getElementById('achievementsList').innerHTML = earned.map(a => `
+        <div class="achievement-card">
+          <div class="achievement-card__icon ${a.color}">${a.icon}</div>
+          <div class="achievement-card__label">${a.label}</div>
+          <div class="achievement-card__text">${a.text}</div>
+        </div>`).join('');
+    }
+
+    function buildMotivation(total, bestPct) {
+      const card = document.getElementById('motivationCard');
+      card.style.display = '';
+      if (total === 0) {
+        document.getElementById('motivationTitle').textContent = 'Начни прямо сейчас';
+        document.getElementById('motivationSub').textContent   = 'Пройди первый экзамен — узнай свой уровень';
+      } else if (bestPct < 50) {
+        document.getElementById('motivationTitle').textContent = 'Есть куда расти!';
+        document.getElementById('motivationSub').textContent   = 'Продолжай тренироваться — результат придёт';
+      } else if (bestPct < 75) {
+        const gap = 75 - bestPct;
+        document.getElementById('motivationTitle').textContent = 'До цели 75%';
+        document.getElementById('motivationSub').textContent   = `Осталось всего ${gap}% — ты на верном пути`;
+      } else if (bestPct < 90) {
+        const gap = 90 - bestPct;
+        document.getElementById('motivationTitle').textContent = 'До цели 90%';
+        document.getElementById('motivationSub').textContent   = `Ещё ${gap}% — и это отличный результат`;
+      } else {
+        document.getElementById('motivationTitle').textContent = 'Отличный результат!';
+        document.getElementById('motivationSub').textContent   = 'Продолжай поддерживать уровень';
+      }
+    }
+
     async function loadProfile() {
       try {
         const { data: { session } } = await sb.auth.getSession();
@@ -1029,6 +1079,7 @@
           document.getElementById('statSubjects').textContent = '0';
           document.getElementById('kpiScore').textContent     = '—';
           setRing(0);
+          buildMotivation(0, 0);
           return;
         }
 
@@ -1037,11 +1088,11 @@
           .select('*')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(50);
 
         if (error) throw error;
 
-        renderHistory(sessions);
+        renderHistory(sessions.slice(0, 20));
 
         if (!sessions.length) {
           document.getElementById('statTotal').textContent    = '0';
@@ -1049,14 +1100,14 @@
           document.getElementById('statSubjects').textContent = '0';
           document.getElementById('kpiScore').textContent     = '—';
           setRing(0);
+          buildMotivation(0, 0);
           return;
         }
 
-        // Stats
         const total    = sessions.length;
         const avgPct   = Math.round(sessions.reduce((sum, s) => sum + (s.score / s.max_score) * 100, 0) / total);
         const subjects = new Set(sessions.map(s => s.subject + s.exam_type)).size;
-        const best     = sessions.reduce((best, s) => (s.score / s.max_score) > (best.score / best.max_score) ? s : best, sessions[0]);
+        const best     = sessions.reduce((b, s) => (s.score / s.max_score) > (b.score / b.max_score) ? s : b, sessions[0]);
         const bestPct  = Math.round((best.score / best.max_score) * 100);
         const bestSubj = (EXAM_LABELS[best.exam_type] || best.exam_type) + ' · ' + (SUBJECT_LABELS[best.subject] || best.subject);
 
@@ -1071,6 +1122,14 @@
 
         setRing(bestPct);
         document.getElementById('kpiBarFill').style.setProperty('--w', bestPct + '%');
+
+        // Readiness
+        document.getElementById('readinessCard').style.display = '';
+        document.getElementById('readinessPct').textContent = avgPct + '%';
+
+        buildChart(sessions);
+        buildAchievements(sessions, total, avgPct, bestPct);
+        buildMotivation(total, bestPct);
 
       } catch (e) {
         console.warn('loadProfile error:', e.message);

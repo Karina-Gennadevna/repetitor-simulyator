@@ -642,20 +642,30 @@
   const examLabels   = {oge:'ОГЭ',ege:'ЕГЭ'};
 
   /* ─────────────────────────────────────
-     ВЫЧИСЛЕНИЕ РЕЗУЛЬТАТА
+     РЕАЛЬНЫЕ РЕЗУЛЬТАТЫ ИЗ SESSIONSTARAGE
   ───────────────────────────────────── */
-  // Симулируем реалистичные результаты на основе answered/total
-  const ratio    = ANSWERED / TOTAL;
-  const p1Answered = Math.min(cfg.p1tasks, ANSWERED);
-  const p2Answered = Math.max(0, ANSWERED - p1Answered);
+  let _examData = null;
+  try {
+    const raw = sessionStorage.getItem('examData');
+    if (raw) _examData = JSON.parse(raw);
+  } catch {}
 
-  // ~75% answered Part 1 correct, ~45% Part 2 correct
-  const p1Correct  = Math.round(p1Answered * (0.6 + ratio * 0.25));
-  const p2Correct  = Math.round(p2Answered * (0.3 + ratio * 0.2));
-  const totalScore = Math.min(cfg.maxScore, p1Correct + p2Correct * Math.ceil(cfg.p2max / Math.max(1, cfg.p2tasks)));
-  const pct        = Math.round((totalScore / cfg.maxScore) * 100);
+  const realQuestions = _examData?.questions || [];
 
-  // Grade
+  // Part 1: краткий/выбор — считаем реальные правильные ответы
+  const p1Qs      = realQuestions.filter(q => q.type === 'short' || q.type === 'choice');
+  const p1Correct = p1Qs.filter(q => q.isCorrect === true).length;
+  const p1Total   = p1Qs.length;
+
+  // Part 2: развёрнутые — 0 до AI-проверки
+  const p2Qs      = realQuestions.filter(q => q.type === 'extended');
+  const p2Correct = 0;
+
+  // Если нет реальных данных — используем answered как приближение
+  const effectiveP1 = p1Total > 0 ? p1Correct : Math.round(Math.min(cfg.p1tasks, ANSWERED) * 0.6);
+  const totalScore  = Math.min(cfg.maxScore, effectiveP1);
+  const pct         = Math.round((totalScore / cfg.maxScore) * 100);
+
   function getGrade(score) {
     if (score >= cfg.grade.five)  return 5;
     if (score >= cfg.grade.four)  return 4;
@@ -664,19 +674,37 @@
   }
   const grade = getGrade(totalScore);
 
-  // Topic performance (симуляция)
-  const seed = ANSWERED * 7 + T_SPENT % 13; // pseudo-random but stable
-  const topicScores = cfg.topics.map((t, i) => {
-    const base = ratio * 0.8;
-    const noise = ((seed + i * 17) % 40 - 20) / 100;
-    return Math.max(0, Math.min(1, base + noise));
-  });
-  const sortedTopics = cfg.topics
-    .map((t, i) => ({ name: t, score: topicScores[i], tasks: cfg.taskNums[t] || [] }))
-    .sort((a,b) => a.score - b.score);
+  // Topic performance из реальных данных
+  const taskToTopic = {};
+  for (const [topic, ids] of Object.entries(cfg.taskNums || {})) {
+    for (const id of ids) taskToTopic[id] = topic;
+  }
 
-  // Forecast
-  const forecastScore = Math.min(cfg.maxScore, Math.round(totalScore * 1.35 + 3));
+  const topicStats = {};
+  for (const topic of cfg.topics) topicStats[topic] = { correct: 0, total: 0 };
+  for (const q of p1Qs) {
+    const t = taskToTopic[q.id];
+    if (t && topicStats[t]) {
+      topicStats[t].total++;
+      if (q.isCorrect === true) topicStats[t].correct++;
+    }
+  }
+
+  const sortedTopics = cfg.topics
+    .map(t => {
+      const s = topicStats[t];
+      const score = s.total > 0 ? s.correct / s.total : null;
+      return { name: t, score, tasks: cfg.taskNums[t] || [], total: s.total, correct: s.correct };
+    })
+    .sort((a, b) => {
+      // Sort: topics with real data first (ascending by score), then unknown
+      if (a.score === null && b.score === null) return 0;
+      if (a.score === null) return 1;
+      if (b.score === null) return -1;
+      return a.score - b.score;
+    });
+
+  const forecastScore = Math.min(cfg.maxScore, Math.round(totalScore * 1.3 + 4));
   const forecastGrade = getGrade(forecastScore);
 
   // Time formatting
@@ -759,7 +787,9 @@
     document.getElementById('scoreBurst').textContent = bursts[grade];
 
     // Meta
-    document.getElementById('metaCorrect').textContent = `${p1Correct + p2Correct}/${TOTAL}`;
+    const totalAnswered = ANSWERED;
+    const totalCorrect  = p1Correct; // p2 будет добавлен AI
+    document.getElementById('metaCorrect').textContent = p1Total > 0 ? `${totalCorrect}/${totalAnswered}` : `${ANSWERED}/${TOTAL}`;
     document.getElementById('metaPercent').textContent  = `${pct}%`;
     document.getElementById('metaTime').textContent     = fmtTime(T_SPENT);
 
@@ -787,8 +817,8 @@
   }
 
   function buildParts() {
-    const p1pct = Math.round((p1Correct / cfg.p1tasks) * 100);
-    const p2pct = p2Answered > 0 ? Math.round((p2Correct / cfg.p2tasks) * 100) : 0;
+    const p1pct = p1Total > 0 ? Math.round((p1Correct / p1Total) * 100) : 0;
+    const p2pct = 0; // обновится после AI-анализа
 
     function lvl(pct) {
       if (pct >= 70) return 'good';
@@ -796,32 +826,33 @@
       return 'bad';
     }
 
+    const p1Label = p1Total > 0 ? `${p1Correct}/${p1Total}` : `—/${cfg.p1tasks}`;
     const grid = document.getElementById('partsGrid');
     grid.innerHTML = `
       <div class="part-card">
         <div class="part-card__top">
           <div class="part-card__name">Часть 1 — Краткий ответ</div>
-          <div class="part-card__score ${lvl(p1pct)}">${p1Correct}/${cfg.p1tasks}</div>
+          <div class="part-card__score ${lvl(p1pct)}">${p1Label}</div>
         </div>
         <div class="part-card__bar">
           <div class="part-card__fill ${lvl(p1pct)}" data-w="${p1pct}" style="width:0%"></div>
         </div>
         <div class="part-card__sub">${p1pct}% верных ответов · ${cfg.p1max} макс. баллов</div>
       </div>
-      <div class="part-card">
+      ${cfg.p2tasks > 0 ? `<div class="part-card">
         <div class="part-card__top">
           <div class="part-card__name">Часть 2 — Развёрнутый ответ</div>
-          <div class="part-card__score ${lvl(p2pct)}">${p2Correct}/${cfg.p2tasks} ✓</div>
+          <div class="part-card__score warn">${p2Qs.length > 0 ? p2Qs.length + ' отв.' : 'Нет ответов'}</div>
         </div>
         <div class="part-card__bar">
-          <div class="part-card__fill ${lvl(p2pct)}" data-w="${p2pct}" style="width:0%"></div>
+          <div class="part-card__fill warn" data-w="0" style="width:0%"></div>
         </div>
-        <div class="part-card__sub">${p2pct}% засчитанных · ${cfg.p2max} макс. баллов</div>
+        <div class="part-card__sub">Проверяется ИИ · ${cfg.p2max} макс. баллов</div>
         <div class="ai-check-note">
           <span style="font-size:14px">🤖</span>
           <span class="ai-check-note__text"><strong>ИИ проверяет развёрнутые ответы</strong> по критериям ФИПИ. Детальная обратная связь — в разборе ошибок.</span>
         </div>
-      </div>`;
+      </div>` : ''}`;
   }
 
   function buildForecast() {
@@ -846,8 +877,15 @@
   }
 
   function buildWeakTopics() {
-    const weak = sortedTopics.slice(0, 5);
     const list = document.getElementById('weakList');
+
+    const topicsWithData = sortedTopics.filter(t => t.score !== null);
+    if (!topicsWithData.length) {
+      list.innerHTML = '<div style="padding:16px;text-align:center;font-size:13px;color:var(--text-muted);">Ответь на задания части 1 — покажем слабые темы</div>';
+      return;
+    }
+
+    const weak = topicsWithData.slice(0, 5);
     list.innerHTML = weak.map((t, i) => {
       const pct  = Math.round(t.score * 100);
       const cls  = pct < 40 ? 'low' : pct < 65 ? 'mid' : 'ok';

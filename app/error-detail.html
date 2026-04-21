@@ -653,9 +653,97 @@
   ───────────────────────────────────── */
   const _urlP   = new URLSearchParams(window.location.search);
   const SUBJECT = _urlP.get('subject') || 'math';
+  const EXAM    = _urlP.get('exam')    || 'oge';
 
   /* ─────────────────────────────────────
-     ДАННЫЕ ПО ЗАДАЧАМ
+     ДАННЫЕ ИЗ SESSIONSTORAGE (реальные)
+  ───────────────────────────────────── */
+  let _examData  = null;
+  let _aiResults = null;
+  try { _examData  = JSON.parse(sessionStorage.getItem('examData')  || 'null'); } catch {}
+  try { _aiResults = JSON.parse(sessionStorage.getItem('aiResults') || 'null'); } catch {}
+
+  function buildTasksFromReal() {
+    if (!_examData?.questions?.length) return null;
+
+    // Объединяем с AI-результатами
+    const aiMap = {};
+    if (_aiResults) for (const r of _aiResults) aiMap[r.id] = r;
+
+    // Берём все отвеченные задания (с ошибками и развёрнутые)
+    const wrongOrExtended = _examData.questions.filter(q =>
+      q.isCorrect === false ||
+      q.type === 'extended' ||
+      (q.isCorrect === null && q.userAnswer != null)
+    );
+
+    if (!wrongOrExtended.length) return [];
+
+    return wrongOrExtended.map(q => {
+      const ai = aiMap[q.id];
+      const isExtended = q.type === 'extended';
+
+      const userAns    = q.userAnswer != null ? String(q.userAnswer) : '—';
+      const correctAns = q.correctAnswer != null ? String(q.correctAnswer)
+                       : q.correctIndex != null  ? `Вариант ${q.correctIndex + 1}`
+                       : (ai?.correct !== false ? '(проверено ИИ)' : '—');
+
+      const aiFeedback  = ai?.feedback || '';
+      const mistakeText = aiFeedback
+        ? aiFeedback
+        : isExtended
+          ? 'Развёрнутый ответ проверяется по критериям ФИПИ. Подробный разбор доступен когда ИИ завершит анализ.'
+          : 'Ответ неверный. Проверь формулировку задания и правила применения.';
+
+      let correctDisplay = correctAns;
+      if (q.type === 'choice' && q.options && q.correctIndex != null) {
+        correctDisplay = q.options[q.correctIndex] || correctAns;
+      }
+
+      return {
+        id:           q.id,
+        topic:        'Задание ' + q.id,
+        text:         q.text || '',
+        userAns,
+        correctAns:   correctDisplay,
+        mistakeText,
+        mistakeStep:  isExtended
+          ? 'ИИ оценивает развёрнутые ответы по критериям ФИПИ: полнота, обоснование, оформление.'
+          : 'Сравни свой ответ с верным и найди, на каком шаге допустил ошибку.',
+        solution: [{
+          title: 'Правильный ответ',
+          text: `Верный ответ: ${correctDisplay}`,
+          formula: correctDisplay,
+          cls: 'success',
+        }],
+        whereText: isExtended
+          ? 'Развёрнутый ответ оценивается за полноту решения и обоснование каждого шага.'
+          : 'Сравни свой ответ и правильный. Найди, где именно расходятся рассуждения.',
+        wrongLine: userAns,
+        rightLine:  correctDisplay,
+        tips: isExtended
+          ? ['Пиши каждый шаг решения с пояснением', 'Проверяй, что ответил на все пункты задания', 'Формулируй вывод явно в конце']
+          : ['Внимательно читай условие задания', 'Проверяй ответ подстановкой', 'Обращай внимание на единицы измерения'],
+        method: {
+          title: isExtended ? 'Как писать развёрнутый ответ' : 'Подход к заданию',
+          sub:   isExtended ? 'Критерии оценивания ФИПИ' : 'Общий алгоритм',
+          steps: isExtended
+            ? ['Прочитай задание и выдели все требования', 'Составь план решения по пунктам', 'Запиши каждый шаг с пояснением', 'Проверь, что ответил на вопрос задания']
+            : ['Прочитай условие до конца', 'Определи тип задачи', 'Реши по алгоритму', 'Проверь ответ'],
+          rule: isExtended
+            ? 'Развёрнутый ответ оценивается по критериям: правильность, полнота обоснования, оформление.'
+            : `Верный ответ: ${correctDisplay}`,
+        },
+        similar: null, // похожие задания генерирует следующий экзамен
+      };
+    });
+  }
+
+  // Пробуем построить из реальных данных, иначе показываем заглушку
+  const realTasks = buildTasksFromReal();
+
+  /* ─────────────────────────────────────
+     FALLBACK ДАННЫЕ (только если нет реальных)
   ───────────────────────────────────── */
   const TASKS_MATH = [
     {
@@ -904,13 +992,13 @@
     },
   ];
 
-  const TASKS = SUBJECT === 'russian' ? TASKS_RUSSIAN : TASKS_MATH;
+  const TASKS_FALLBACK = SUBJECT === 'russian' ? TASKS_RUSSIAN : TASKS_MATH;
+  const TASKS = (realTasks && realTasks.length > 0) ? realTasks : TASKS_FALLBACK;
 
   /* ─────────────────────────────────────
      СОСТОЯНИЕ
   ───────────────────────────────────── */
   let currentIdx = 0;
-  const task = TASKS[currentIdx];
 
   /* ─────────────────────────────────────
      РЕНДЕР
@@ -962,17 +1050,33 @@
         <div class="rule-box__text">${t.method.rule.replace(/\n/g,'<br>')}</div>
       </div>`;
 
-    // Similar task
-    document.getElementById('similarQuestion').textContent = t.similar.question;
-    document.getElementById('similarFormula').textContent  = t.similar.formula;
-    document.getElementById('similarFormula').style.display = t.similar.formula ? 'block' : 'none';
-    document.getElementById('similarHint').textContent     = t.similar.hint;
-    document.getElementById('similarInput').value          = '';
-    document.getElementById('similarInput').className      = 'similar-input';
-    document.getElementById('checkResult').style.display   = 'none';
-    document.getElementById('checkResult').className       = 'check-result';
-    document.getElementById('inputIcon').style.display     = 'none';
-    document.getElementById('btnReveal').style.display     = '';
+    // Similar task (null = скрыть секцию)
+    const similarSection = document.querySelector('.similar-card')?.closest('div') || null;
+    const simCard = document.querySelector('.similar-card');
+    const simLabel = document.querySelector('.sec-label:last-of-type');
+
+    if (!t.similar) {
+      if (simCard) simCard.style.display = 'none';
+      // Скрываем метку "Похожее задание"
+      document.querySelectorAll('.sec-label').forEach(el => {
+        if (el.textContent.trim().includes('Похожее задание')) el.style.display = 'none';
+      });
+    } else {
+      if (simCard) simCard.style.display = '';
+      document.querySelectorAll('.sec-label').forEach(el => {
+        if (el.textContent.trim().includes('Похожее задание')) el.style.display = '';
+      });
+      document.getElementById('similarQuestion').textContent = t.similar.question;
+      document.getElementById('similarFormula').textContent  = t.similar.formula;
+      document.getElementById('similarFormula').style.display = t.similar.formula ? 'block' : 'none';
+      document.getElementById('similarHint').textContent     = t.similar.hint;
+      document.getElementById('similarInput').value          = '';
+      document.getElementById('similarInput').className      = 'similar-input';
+      document.getElementById('checkResult').style.display   = 'none';
+      document.getElementById('checkResult').className       = 'check-result';
+      document.getElementById('inputIcon').style.display     = 'none';
+      document.getElementById('btnReveal').style.display     = '';
+    }
 
     // Nav arrows
     document.getElementById('btnPrev').disabled  = currentIdx === 0;
@@ -983,6 +1087,7 @@
      ПОХОЖЕЕ ЗАДАНИЕ — ПРОВЕРКА
   ───────────────────────────────────── */
   function checkSimilar() {
+    if (!TASKS[currentIdx].similar) return;
     const input = document.getElementById('similarInput');
     const val   = input.value.trim().replace(',','.');
     const ans   = TASKS[currentIdx].similar.answer.replace(',','.');
@@ -1006,6 +1111,7 @@
 
   function revealAnswer() {
     const t = TASKS[currentIdx];
+    if (!t.similar) return;
     document.getElementById('similarInput').value = t.similar.answer;
     document.getElementById('similarInput').classList.add('correct-ans');
     const icon = document.getElementById('inputIcon');
@@ -1038,7 +1144,17 @@
   /* ─────────────────────────────────────
      СТАРТ
   ───────────────────────────────────── */
-  render(TASKS[0]);
+  if (!TASKS.length) {
+    document.getElementById('mainPage').innerHTML = `
+      <div style="padding:60px 24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+        <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;">Ошибок нет!</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-bottom:32px;">Все ответы правильные. Отличная работа!</div>
+        <button onclick="history.back()" style="padding:15px 32px;background:var(--gradient);border-radius:14px;font-size:15px;font-weight:800;color:#fff;cursor:pointer;">← Назад к результатам</button>
+      </div>`;
+  } else {
+    render(TASKS[0]);
+  }
 </script>
 </body>
 </html>
