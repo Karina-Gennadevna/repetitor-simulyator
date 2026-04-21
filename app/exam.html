@@ -1751,9 +1751,6 @@
       }
     } catch (e) { /* ignore */ }
     if (!questions) questions = QUESTIONS[EXAM][SUBJECT];
-    const _genErr = sessionStorage.getItem('generateError');
-    if (_genErr) { sessionStorage.removeItem('generateError'); console.error('[GENERATE] ошибка с countdown:', _genErr); }
-    console.log('[EXAM] режим:', questions === QUESTIONS[EXAM]?.[SUBJECT] ? 'СТАТИКА' : 'СГЕНЕРИРОВАНО', '| audioText задания 1:', questions[0]?.audioText?.slice(0,40));
 
     const total     = questions.length;
     const answers   = new Array(total).fill(null);   // null | string

@@ -365,14 +365,10 @@
         if (!resp.ok) throw new Error('generate failed');
         const data = await resp.json();
         sessionStorage.setItem('generatedExam', JSON.stringify(data));
-        console.log('[GENERATE] успех, вопросов:', data?.questions?.length);
       } catch (e) {
         clearTimeout(timer);
         const msg = e?.message || String(e);
-        console.error('[GENERATE] ОШИБКА:', msg);
-        sessionStorage.setItem('generateError', msg);
         sessionStorage.removeItem('generatedExam');
-        labelEl.textContent = 'Ошибка: ' + msg.slice(0, 60);
       }
       questionsReady = true;
       document.getElementById('skipBtn').style.display = '';
