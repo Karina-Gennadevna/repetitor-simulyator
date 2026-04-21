@@ -279,7 +279,7 @@
 
   </div>
 
-  <button class="skip-btn" onclick="goToExam()">Пропустить →</button>
+  <button class="skip-btn" id="skipBtn" onclick="goToExam()" style="display:none">Пропустить →</button>
 
   <script>
     const _sbG = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
@@ -371,6 +371,7 @@
         sessionStorage.removeItem('generatedExam');
       }
       questionsReady = true;
+      document.getElementById('skipBtn').style.display = '';
       if (countdownDone) goToExam();
     }
 
