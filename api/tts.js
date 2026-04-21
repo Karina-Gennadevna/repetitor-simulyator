@@ -27,7 +27,8 @@ export default async function handler(req, res) {
 
   if (!elResp.ok) {
     const err = await elResp.text();
-    return res.status(elResp.status).json({ error: err });
+    console.error('ElevenLabs error', elResp.status, err);
+    return res.status(elResp.status).json({ error: err, status: elResp.status });
   }
 
   const buffer = await elResp.arrayBuffer();
