@@ -190,6 +190,45 @@
     }
     .auth-note a{color:var(--text-accent);font-weight:600;}
 
+    /* FORGOT PASSWORD */
+    .forgot-link{
+      text-align:right;margin-top:-6px;
+    }
+    .forgot-link a{
+      font-size:12px;color:var(--text-soft);font-weight:500;
+      text-decoration:none;transition:color 0.18s;
+    }
+    .forgot-link a:hover{color:var(--text-accent);}
+
+    /* MODAL */
+    .modal-overlay{
+      position:fixed;inset:0;z-index:100;
+      background:rgba(9,9,15,0.85);backdrop-filter:blur(6px);
+      display:flex;align-items:flex-end;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity 0.25s;
+    }
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal-sheet{
+      background:var(--bg-elevated);border:1px solid var(--border);
+      border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+      padding:28px 24px 40px;width:100%;max-width:430px;
+      transform:translateY(40px);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .modal-overlay.open .modal-sheet{transform:translateY(0);}
+    .modal-handle{
+      width:36px;height:4px;border-radius:2px;
+      background:var(--border);margin:0 auto 20px;
+    }
+    .modal-title{font-size:18px;font-weight:800;margin-bottom:6px;}
+    .modal-sub{font-size:13px;color:var(--text-soft);margin-bottom:20px;line-height:1.5;}
+
+    /* FIELD ERROR */
+    .field__error{
+      font-size:11px;color:var(--danger);font-weight:500;
+      display:none;margin-top:2px;
+    }
+    .field__error.visible{display:block;}
+
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
   </style>
 </head>
@@ -219,7 +258,7 @@
   <div class="error-msg" id="errorMsg"></div>
 
   <!-- LOGIN FORM -->
-  <form class="form" id="loginForm" onsubmit="handleLogin(event)">
+  <form class="form" id="loginForm" onsubmit="handleLogin(event)" novalidate>
     <div class="field">
       <div class="field__label">Email</div>
       <input class="field__input" id="loginEmail" type="email" placeholder="твой@email.ru" autocomplete="email" required />
@@ -228,6 +267,9 @@
       <div class="field__label">Пароль</div>
       <input class="field__input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" required />
     </div>
+    <div class="forgot-link">
+      <a href="#" onclick="openForgot();return false;">Забыли пароль?</a>
+    </div>
     <button class="btn-submit" type="submit" id="btnLogin">
       <div class="btn-submit__spinner"></div>
       <span class="btn-submit__text">Войти</span>
@@ -235,7 +277,7 @@
   </form>
 
   <!-- REGISTER FORM -->
-  <form class="form" id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+  <form class="form" id="registerForm" style="display:none" onsubmit="handleRegister(event)" novalidate>
     <div class="field">
       <div class="field__label">Как тебя зовут?</div>
       <div class="field__name-row">
@@ -262,6 +304,25 @@
     Нет аккаунта? <a href="#" onclick="switchTab('register');return false;">Зарегистрируйся</a>
   </div>
 
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgotModal" onclick="closeForgotOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Восстановление пароля</div>
+    <div class="modal-sub">Введи email — мы пришлём ссылку для сброса пароля</div>
+    <div class="field" style="margin-bottom:14px">
+      <div class="field__label">Email</div>
+      <input class="field__input" id="forgotEmail" type="email" placeholder="твой@email.ru" autocomplete="email" />
+      <div class="field__error" id="forgotEmailError">Введи корректный email</div>
+    </div>
+    <div class="error-msg" id="forgotErrorMsg" style="margin-bottom:14px"></div>
+    <button class="btn-submit" id="btnForgot" onclick="handleForgot()" type="button">
+      <div class="btn-submit__spinner"></div>
+      <span class="btn-submit__text">Отправить ссылку</span>
+    </button>
+  </div>
 </div>
 
 <script>
@@ -305,11 +366,32 @@
     btn.classList.toggle('loading', loading);
   }
 
+  // Валидация полей
+  function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+  function notEmpty(v) { return v.trim().length > 0; }
+
   async function handleLogin(e) {
     e.preventDefault();
     clearError();
-    const email    = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
+
+    const emailEl    = document.getElementById('loginEmail');
+    const passwordEl = document.getElementById('loginPassword');
+
+    let ok = true;
+    if (!isEmail(emailEl.value)) {
+      emailEl.classList.add('error');
+      showError('Введи корректный email');
+      ok = false;
+    } else { emailEl.classList.remove('error'); }
+    if (!passwordEl.value) {
+      passwordEl.classList.add('error');
+      if (ok) showError('Введи пароль');
+      ok = false;
+    } else { passwordEl.classList.remove('error'); }
+    if (!ok) return;
+
+    const email    = emailEl.value.trim();
+    const password = passwordEl.value;
     setLoading('btnLogin', true);
 
     const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -318,7 +400,9 @@
     if (error) {
       showError(error.message === 'Invalid login credentials'
         ? 'Неверный email или пароль'
-        : error.message);
+        : 'Произошла ошибка. Попробуй ещё раз.');
+      emailEl.classList.add('error');
+      passwordEl.classList.add('error');
       return;
     }
     window.location.replace('today.html');
@@ -327,10 +411,33 @@
   async function handleRegister(e) {
     e.preventDefault();
     clearError();
-    const firstName = document.getElementById('regFirstName').value.trim();
+
+    const firstNameEl = document.getElementById('regFirstName');
+    const emailEl     = document.getElementById('regEmail');
+    const passwordEl  = document.getElementById('regPassword');
+
+    let ok = true;
+    if (!notEmpty(firstNameEl.value)) {
+      firstNameEl.classList.add('error');
+      showError('Введи своё имя');
+      ok = false;
+    } else { firstNameEl.classList.remove('error'); }
+    if (!isEmail(emailEl.value)) {
+      emailEl.classList.add('error');
+      if (ok) showError('Введи корректный email');
+      ok = false;
+    } else { emailEl.classList.remove('error'); }
+    if (passwordEl.value.length < 6) {
+      passwordEl.classList.add('error');
+      if (ok) showError('Пароль должен быть не менее 6 символов');
+      ok = false;
+    } else { passwordEl.classList.remove('error'); }
+    if (!ok) return;
+
+    const firstName = firstNameEl.value.trim();
     const lastName  = document.getElementById('regLastName').value.trim();
-    const email     = document.getElementById('regEmail').value.trim();
-    const password  = document.getElementById('regPassword').value;
+    const email     = emailEl.value.trim();
+    const password  = passwordEl.value;
     setLoading('btnRegister', true);
 
     const { data: signUpData, error: signUpError } = await sb.auth.signUp({
@@ -383,6 +490,61 @@
       </div>`;
   }
 
+  // FORGOT PASSWORD
+  function openForgot() {
+    const emailVal = document.getElementById('loginEmail').value.trim();
+    if (isEmail(emailVal)) document.getElementById('forgotEmail').value = emailVal;
+    document.getElementById('forgotModal').classList.add('open');
+    document.getElementById('forgotErrorMsg').classList.remove('visible');
+    document.getElementById('forgotEmailError').classList.remove('visible');
+  }
+  function closeForgot() {
+    document.getElementById('forgotModal').classList.remove('open');
+  }
+  function closeForgotOutside(e) {
+    if (e.target === document.getElementById('forgotModal')) closeForgot();
+  }
+
+  async function handleForgot() {
+    const emailEl = document.getElementById('forgotEmail');
+    const errEl   = document.getElementById('forgotEmailError');
+    const msgEl   = document.getElementById('forgotErrorMsg');
+
+    emailEl.classList.remove('error');
+    errEl.classList.remove('visible');
+    msgEl.classList.remove('visible');
+
+    if (!isEmail(emailEl.value)) {
+      emailEl.classList.add('error');
+      errEl.classList.add('visible');
+      return;
+    }
+
+    setLoading('btnForgot', true);
+    const { error } = await sb.auth.resetPasswordForEmail(emailEl.value.trim(), {
+      redirectTo: window.location.origin + '/app/auth.html'
+    });
+    setLoading('btnForgot', false);
+
+    if (error) {
+      msgEl.textContent = 'Не удалось отправить письмо. Проверь email и попробуй ещё раз.';
+      msgEl.classList.add('visible');
+      return;
+    }
+
+    document.querySelector('#forgotModal .modal-sheet').innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:16px">📬</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:8px">Письмо отправлено</div>
+        <div style="font-size:14px;color:var(--text-soft);line-height:1.65">
+          Проверь почту <strong style="color:var(--text-accent)">${emailEl.value.trim()}</strong><br>
+          и нажми на ссылку для сброса пароля.
+        </div>
+        <button class="btn-submit" style="margin-top:24px" onclick="closeForgot()" type="button">
+          <span class="btn-submit__text">Закрыть</span>
+        </button>
+      </div>`;
+  }
 </script>
 
 </body>
