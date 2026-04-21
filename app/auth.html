@@ -333,7 +333,7 @@
     const password  = document.getElementById('regPassword').value;
     setLoading('btnRegister', true);
 
-    const { error } = await sb.auth.signUp({
+    const { data: signUpData, error: signUpError } = await sb.auth.signUp({
       email,
       password,
       options: {
@@ -344,14 +344,34 @@
         }
       }
     });
-    setLoading('btnRegister', false);
 
-    if (error) {
-      showError(error.message);
+    if (signUpError) {
+      setLoading('btnRegister', false);
+      const msg = signUpError.message.includes('already registered')
+        ? 'Этот email уже зарегистрирован. Войди или используй другой email.'
+        : signUpError.message.includes('password')
+        ? 'Пароль слишком простой. Минимум 6 символов.'
+        : signUpError.message;
+      showError(msg);
       return;
     }
 
-    // Supabase требует подтверждения email — показываем сообщение
+    // Если email подтверждение отключено в Supabase — сессия уже есть
+    if (signUpData?.session) {
+      window.location.replace('today.html');
+      return;
+    }
+
+    // Иначе пробуем автологин
+    const { error: loginError } = await sb.auth.signInWithPassword({ email, password });
+    setLoading('btnRegister', false);
+
+    if (!loginError) {
+      window.location.replace('today.html');
+      return;
+    }
+
+    // Подтверждение email требуется
     document.getElementById('registerForm').innerHTML = `
       <div style="text-align:center;padding:20px 0;">
         <div style="font-size:40px;margin-bottom:16px">📬</div>
