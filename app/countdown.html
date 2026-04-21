@@ -369,6 +369,7 @@
       } catch (e) {
         clearTimeout(timer);
         console.error('[GENERATE] ОШИБКА:', e?.message || e);
+        sessionStorage.setItem('generateError', e?.message || String(e));
         sessionStorage.removeItem('generatedExam');
       }
       questionsReady = true;
