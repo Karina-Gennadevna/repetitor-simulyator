@@ -548,8 +548,8 @@
         russian: { tasks: 13, time: '3:55', points: 37, meta: '13 заданий · 3ч 55мин' },
       },
       ege: {
-        math:    { tasks: '—',  time: '—',    points: '—',  meta: 'Скоро · в разработке' },
-        russian: { tasks: 27,   time: '3:30', points: 54,   meta: '27 заданий · 3ч 30мин' },
+        math:    { tasks: 19, time: '3:55', points: 32, meta: '19 заданий · 3ч 55мин' },
+        russian: { tasks: 27, time: '3:30', points: 54, meta: '27 заданий · 3ч 30мин' },
       }
     };
 
@@ -571,22 +571,6 @@
         btnOge.classList.remove('active');
       }
 
-      // При ЕГЭ математика недоступна
-      const mathCard = document.getElementById('card-math');
-      if (type === 'ege') {
-        mathCard.classList.add('coming-soon');
-        mathCard.querySelector('.subject-card__meta').textContent = 'Скоро · в разработке';
-        if (selectedSubject === 'math') {
-          selectedSubject = null;
-          mathCard.classList.remove('selected');
-          document.getElementById('btnStart').disabled = true;
-          document.querySelector('.hint').innerHTML = 'Выбери предмет — и кнопка станет активной';
-        }
-      } else {
-        mathCard.classList.remove('coming-soon');
-        mathCard.querySelector('.subject-card__meta').textContent = examData.oge.math.meta;
-      }
-
       // Обновить мета-текст предметов
       updateSubjectMeta();
       // Обновить инфо-панель если предмет уже выбран
@@ -595,7 +579,6 @@
 
     // ── SELECT SUBJECT ──
     function selectSubject(subj) {
-      if (subj === 'math' && selectedExam === 'ege') return;
       selectedSubject = subj;
 
       // Снять выделение со всех

@@ -1,6 +1,7 @@
 import { configs as ogeMathConfigs,  codifiers as ogeMathCodifiers,  modeRules } from './_configs/oge_math.js';
 import { configs as ogeRusConfigs,   codifiers as ogeRusCodifiers   } from './_configs/oge_russian.js';
 import { configs as egeRusConfigs,   codifiers as egeRusCodifiers   } from './_configs/ege_russian.js';
+import { configs as egeMathConfigs,  codifiers as egeMathCodifiers  } from './_configs/ege_math.js';
 
 const CONFIG_MAP = {
   oge: {
@@ -8,6 +9,7 @@ const CONFIG_MAP = {
     russian: { configs: ogeRusConfigs,   codifiers: ogeRusCodifiers   },
   },
   ege: {
+    math:    { configs: egeMathConfigs,  codifiers: egeMathCodifiers  },
     russian: { configs: egeRusConfigs,   codifiers: egeRusCodifiers   },
   },
 };
