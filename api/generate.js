@@ -1,10 +1,14 @@
 import { configs as ogeMathConfigs,  codifiers as ogeMathCodifiers,  modeRules } from './_configs/oge_math.js';
 import { configs as ogeRusConfigs,   codifiers as ogeRusCodifiers   } from './_configs/oge_russian.js';
+import { configs as egeRusConfigs,   codifiers as egeRusCodifiers   } from './_configs/ege_russian.js';
 
 const CONFIG_MAP = {
   oge: {
     math:    { configs: ogeMathConfigs,  codifiers: ogeMathCodifiers  },
     russian: { configs: ogeRusConfigs,   codifiers: ogeRusCodifiers   },
+  },
+  ege: {
+    russian: { configs: egeRusConfigs,   codifiers: egeRusCodifiers   },
   },
 };
 
@@ -21,6 +25,49 @@ const FORMAT_HINTS = {
   graph_construction:'структурированный анализ функции + ответ на доп. вопрос (НЕ описание рисунка)',
   extended:          'развёрнутый ответ',
 };
+
+function buildRussianNotes(cfg) {
+  if (cfg.subject !== 'russian') return '';
+
+  const f = cfg.features;
+
+  // Legacy fallback: нет features → старая OGE-логика
+  if (!f) {
+    return [
+      '- Для русского задания id=1: добавь поле "audioText" (текст изложения 130–150 слов)',
+      '- Для русского языка: задания 2–12 и 13 основаны на ОДНОМ читаемом тексте. Для задания id=2 добавь поле "readingText" (художественный или публицистический текст 150–200 слов, связный, с 3–4 абзацами). Задания 2–12 формулируй по этому тексту. В задании id=13 (сочинение) укажи в поле "text" конкретное слово-понятие из читаемого текста, по которому пишется сочинение-рассуждение 13.3',
+    ].join('\n');
+  }
+
+  const lines = [];
+
+  if (f.hasAudioText && f.audioTaskId) {
+    lines.push(`- Для задания id=${f.audioTaskId}: добавь поле "audioText" (текст изложения 130–150 слов, 3 чётко выраженных микротемы)`);
+  }
+
+  if (f.infoTextTaskId) {
+    lines.push(
+      `- Для задания id=${f.infoTextTaskId}: добавь поле "infoText" — два коротких (по 80–100 слов каждый) текста на одну тему, разделённых маркером "Текст 2:". Задания ${f.infoTextTaskId}–${f.infoTextEndId ?? f.infoTextTaskId} формулируй по этим текстам`
+    );
+  }
+
+  if (f.readingTextTaskId) {
+    const endId    = f.readingTextEndId ?? f.readingTextTaskId;
+    const words    = cfg.exam === 'ege' ? '200–250' : '150–200';
+    lines.push(
+      `- Для задания id=${f.readingTextTaskId}: добавь поле "readingText" (художественный или публицистический текст ${words} слов, связный, с 3–4 абзацами). Задания ${f.readingTextTaskId}–${endId} формулируй по этому тексту`
+    );
+    if (f.writingTaskId) {
+      if (cfg.exam === 'ege') {
+        lines.push(`- Задание id=${f.writingTaskId}: в поле "text" укажи проблему из читаемого текста, по которой пишется сочинение-рассуждение с комментарием и позицией автора`);
+      } else {
+        lines.push(`- Задание id=${f.writingTaskId}: в поле "text" укажи конкретное слово-понятие из читаемого текста, по которому пишется сочинение-рассуждение 13.3`);
+      }
+    }
+  }
+
+  return lines.join('\n');
+}
 
 function buildPrompt(examConfig, codifier, examLabel, subjectLabel) {
   const activeMode = examConfig.generationMode || 'ai_fipi_style';
@@ -135,8 +182,7 @@ ${specText}
 - "contextStem": только у первого задания группы, у остальных в группе — отсутствует
 - "choice": только "options" и "correctIndex", поле "correct" не нужно
 - "extended" (кроме 22): поля "correct" и "correctIndex" не нужны
-- Для русского задания id=1: добавь поле "audioText" (текст изложения 130–150 слов)
-- Для русского языка: задания 2–12 и 13 основаны на ОДНОМ читаемом тексте. Для задания id=2 добавь поле "readingText" (художественный или публицистический текст 150–200 слов, связный, с 3–4 абзацами). Задания 2–12 формулируй по этому тексту. В задании id=13 (сочинение) укажи в поле "text" конкретное слово-понятие из читаемого текста, по которому пишется сочинение-рассуждение 13.3`;
+${buildRussianNotes(examConfig)}`;
 }
 
 export default async function handler(req, res) {

@@ -8,6 +8,14 @@ export const configs = {
     maxScore: 37,
     gradeThresholds: { 5: 29, 4: 20, 3: 10 },
 
+    features: {
+      hasAudioText: true,
+      audioTaskId: 1,
+      readingTextTaskId: 2,
+      readingTextEndId: 12,
+      writingTaskId: 13,
+    },
+
     tasks: [
       { id:1, part:1, type:'extended', score:6,  topicCode:'RUS_IZLOZHENIE',  answerFormat:'extended' },
       { id:2, part:1, type:'short',    score:1,  topicCode:'RUS_SYNTAX_BASE', answerFormat:'words'    },
