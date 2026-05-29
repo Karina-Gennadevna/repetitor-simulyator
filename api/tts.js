@@ -1,5 +1,8 @@
+const ALLOWED_ORIGIN = 'https://repetitor-simulyator.vercel.app';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin || '';
+  res.setHeader('Access-Control-Allow-Origin', origin === ALLOWED_ORIGIN ? ALLOWED_ORIGIN : '');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -7,7 +10,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { text } = req.body || {};
-  if (!text) return res.status(400).json({ error: 'text required' });
+  if (!text || typeof text !== 'string') return res.status(400).json({ error: 'text required' });
+  if (text.length > 5000) return res.status(400).json({ error: 'text too long (max 5000 chars)' });
 
   const elResp = await fetch(
     'https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL',

@@ -718,5 +718,14 @@
   // Таймер не запускаем — страница показывает "скоро"
   // window.addEventListener('DOMContentLoaded', () => { startTimer(); });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  (function() {
+    const _sb = supabase.createClient('https://ahdxqfqbehsrdgwfpuuh.supabase.co','sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny');
+    _sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user || session.user.is_anonymous) window.location.replace('auth.html');
+    });
+  })();
+</script>
 </body>
 </html>

@@ -2158,8 +2158,7 @@
 
       function buildGrid(container, qs) {
         container.innerHTML = '';
-        qs.forEach(q => {
-          const idx = q.id - 1;
+        qs.forEach((q, idx) => {
           const cell = document.createElement('button');
           cell.className = 'task-cell';
           cell.textContent = q.id;
@@ -2196,7 +2195,7 @@
         math: {
           1:  '5',    2:  '25',   4:  '5/8',  5:  '4',   6:  '3',
           8:  '80',   10: '37',   11: '4',    12: '-4',  14: '16',
-          15: '24',   16: '5',    18: '27',   19: '39',
+          15: '24',   16: '5',    18: '27',   19: '1, 3, 4',
           // choice: индекс правильного варианта
           3:  1,  7:  1,  9:  2,  13: 1,  17: 1,
         },
@@ -2476,7 +2475,7 @@
     function stopAudio() {
       if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
       audioIsSpeaking = false;
-      audioPlaysLeft = Math.min(audioPlaysLeft + 1, 2);
+      // счётчик прослушиваний не восстанавливается при остановке — по условию ОГЭ
       updateAudioUI();
       setAudioStatus('Воспроизведение остановлено', '');
     }

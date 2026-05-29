@@ -358,7 +358,7 @@
         const resp = await fetch('/api/generate', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ exam, subject }),
+          body:    JSON.stringify({ exam, subject, year: 2026 }),
           signal:  ctrl.signal,
         });
         clearTimeout(timer);
