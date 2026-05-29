@@ -304,6 +304,29 @@
     Нет аккаунта? <a href="#" onclick="switchTab('register');return false;">Зарегистрируйся</a>
   </div>
 
+  <!-- NEW PASSWORD SECTION (показывается после клика по ссылке из письма) -->
+  <div id="resetSection" style="display:none">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="hero__title">Новый <span class="grad">пароль</span></div>
+      <div class="hero__sub" style="margin-top:8px">Придумай пароль для входа в аккаунт</div>
+    </div>
+    <div class="error-msg" id="resetErrorMsg" style="margin-bottom:14px"></div>
+    <form class="form" id="resetForm" onsubmit="handleResetPassword(event)" novalidate>
+      <div class="field">
+        <div class="field__label">Новый пароль</div>
+        <input class="field__input" id="newPassword" type="password" placeholder="Минимум 6 символов" autocomplete="new-password" minlength="6" required />
+      </div>
+      <div class="field">
+        <div class="field__label">Повторите пароль</div>
+        <input class="field__input" id="confirmPassword" type="password" placeholder="Повторите пароль" autocomplete="new-password" required />
+      </div>
+      <button class="btn-submit" type="submit" id="btnReset">
+        <div class="btn-submit__spinner"></div>
+        <span class="btn-submit__text">Сохранить пароль</span>
+      </button>
+    </form>
+  </div>
+
 </div>
 
 <!-- FORGOT PASSWORD MODAL -->
@@ -336,6 +359,54 @@
       window.location.replace('today.html');
     }
   });
+
+  // Обработка ссылки сброса пароля из письма
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      showResetSection();
+    }
+  });
+
+  function showResetSection() {
+    document.querySelector('.hero').style.display        = 'none';
+    document.querySelector('.tabs').style.display        = 'none';
+    document.getElementById('errorMsg').style.display    = 'none';
+    document.getElementById('loginForm').style.display   = 'none';
+    document.getElementById('registerForm').style.display= 'none';
+    document.getElementById('authNote').style.display    = 'none';
+    document.getElementById('resetSection').style.display= 'block';
+  }
+
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    const newPwd     = document.getElementById('newPassword').value;
+    const confirmPwd = document.getElementById('confirmPassword').value;
+    const errEl      = document.getElementById('resetErrorMsg');
+    errEl.classList.remove('visible');
+
+    if (newPwd.length < 6) {
+      errEl.textContent = 'Пароль должен быть не менее 6 символов';
+      errEl.classList.add('visible');
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      errEl.textContent = 'Пароли не совпадают';
+      errEl.classList.add('visible');
+      return;
+    }
+
+    setLoading('btnReset', true);
+    const { error } = await sb.auth.updateUser({ password: newPwd });
+    setLoading('btnReset', false);
+
+    if (error) {
+      errEl.textContent = 'Не удалось сохранить пароль. Попробуй ещё раз.';
+      errEl.classList.add('visible');
+      return;
+    }
+
+    window.location.replace('today.html');
+  }
 
   let currentTab = 'login';
 
