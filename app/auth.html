@@ -353,17 +353,21 @@
   const SB_KEY = 'sb_publishable_by0lv1LEyc6NK4zwjz1vkQ_NT_4r4ny';
   const sb = supabase.createClient(SB_URL, SB_KEY);
 
-  // Если уже залогинен — сразу на главную
-  sb.auth.getSession().then(({ data: { session } }) => {
-    if (session?.user && !session.user.is_anonymous) {
-      window.location.replace('today.html');
+  let recoveryMode = false;
+
+  // ВАЖНО: слушатель регистрируем ДО getSession — иначе PASSWORD_RECOVERY пропускается
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      recoveryMode = true;
+      showResetSection();
     }
   });
 
-  // Обработка ссылки сброса пароля из письма
-  sb.auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY') {
-      showResetSection();
+  // Если уже залогинен — сразу на главную (только не в режиме сброса пароля)
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (recoveryMode) return;
+    if (session?.user && !session.user.is_anonymous) {
+      window.location.replace('today.html');
     }
   });
 
